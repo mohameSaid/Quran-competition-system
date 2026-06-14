@@ -145,7 +145,7 @@ import {
             </mat-card-header>
             <mat-card-content>
               <div class="fields">
-                <mat-form-field appearance="outline" class="full-width">
+                <!-- <mat-form-field appearance="outline" class="full-width">
                   <mat-label>اسم المحفّظ *</mat-label>
                   <mat-select formControlName="memorizerId" (selectionChange)="onMemorizerChange($event.value)">
                     @if (memorizersLoading()) {
@@ -161,7 +161,7 @@ import {
                   @if (f.memorizerId.invalid && f.memorizerId.touched) {
                     <mat-error>يجب اختيار قيمة</mat-error>
                   }
-                </mat-form-field>
+                </mat-form-field> -->
 
                 <div class="form-grid-2">
                   <mat-form-field appearance="outline" class="full-width">
@@ -365,7 +365,7 @@ export class RegisterComponent implements OnInit {
     birthDate: [null as Date | null, Validators.required],
     parentPhone: ["", requiredEgyptMobileValidator()],
     alternatePhone: ["", optionalEgyptMobileValidator()],
-    memorizerId: ["", Validators.required],
+    memorizerId: ["", ],
     memorizerName: [""],
     juzCount: [null as number | null, Validators.required],
     previousLevel: ["", Validators.required],
