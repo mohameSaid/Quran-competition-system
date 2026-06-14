@@ -1,2 +1,137 @@
-# Quran-competition-system
-Quran competition system for Kafr abo el hassan
+# نظام مسابقة القرآن الكريم v2.0 📖
+
+> Angular 19 + Firebase 11 + Angular Material 19 (M3 API)
+
+---
+
+## 🚀 تشغيل المشروع
+
+```bash
+# 1. تثبيت المكتبات
+npm install
+
+# 2. ضع بيانات مشروع Firebase في:
+#    src/environments/environment.dev.ts
+
+# 3. شغّل محلياً
+npm start
+
+# 4. نشر على Firebase
+npm run deploy
+```
+
+---
+
+## 🔧 إعداد Firebase (خطوة واحدة)
+
+في `src/environments/environment.dev.ts` عدّل:
+
+```typescript
+firebase: {
+  apiKey:            'xxx',
+  authDomain:        'your-project.firebaseapp.com',
+  projectId:         'your-project',
+  storageBucket:     'your-project.appspot.com',
+  messagingSenderId: 'xxx',
+  appId:             'xxx'
+}
+```
+
+---
+
+## 👤 إنشاء أول مسؤول
+
+بعد التسجيل في Firebase Auth، ادخل Firestore وأضف:
+
+```
+/users/{uid}  →  { role: "admin", displayName: "اسمك" }
+```
+
+لإنشاء محكّم:
+```
+/users/{uid}  →  { role: "sheikh", sheikhId: "sheikh-doc-id" }
+```
+
+---
+
+## 📁 هيكل المشروع
+
+```
+src/app/
+├── core/
+│   ├── models/          ← جميع الـ interfaces
+│   ├── services/        ← Firebase services
+│   │   ├── auth.service.ts
+│   │   ├── student.service.ts    ← CRUD كامل
+│   │   ├── sheikh.service.ts     ← CRUD كامل
+│   │   ├── session.service.ts    ← CRUD كامل
+│   │   ├── score.service.ts      ← submit + publish
+│   │   ├── competition.service.ts
+│   │   ├── audit.service.ts      ← immutable log
+│   │   └── export.service.ts     ← Excel lazy-loaded
+│   ├── guards/          ← auth / admin / sheikh
+│   └── interceptors/    ← error handler
+├── shared/
+│   ├── components/
+│   │   ├── confirm-dialog/   ← reusable confirm
+│   │   ├── loading-spinner/
+│   │   ├── empty-state/
+│   │   ├── medal/
+│   │   └── score-badge/
+│   └── pipes/           ← grade | categoryLabel
+└── features/            ← lazy-loaded modules
+    ├── public/          ← home (static) + register
+    ├── auth/            ← login
+    ├── admin/           ← dashboard, students, sheikhs,
+    │                       sessions, results, reports
+    └── sheikh/          ← queue + scoring
+```
+
+---
+
+## 🗄️ Firestore Schema
+
+```
+/competitions/{compId}
+  ├── /students/{studentId}
+  │     fullName, nationalId, parentPhone,
+  │     sheikhId, sheikhName, age, juzCount,
+  │     category, status, sessionId, ...
+  ├── /scores/{scoreId}        ← immutable
+  │     breakdown{hifz,tajweed,ada,waqf},
+  │     total, isPublished, ...
+  └── /sessions/{sessionId}
+        sheikhId, category, date, capacity,
+        studentIds[], status, ...
+
+/users/{uid}        ← role, sheikhId
+/sheikhs/{id}       ← name, phone, categories, isActive
+/auditLogs/{id}     ← append-only, never updated
+```
+
+---
+
+## 📊 معايير التقييم (100 درجة)
+
+| المعيار | الدرجة | الوصف |
+|---------|--------|-------|
+| الحفظ والاسترسال | /40 | مستوى الحفظ والطلاقة |
+| أحكام التجويد   | /30 | تطبيق أحكام التجويد |
+| جمال الصوت والأداء | /20 | حسن الصوت والترتيل |
+| الوقف والابتداء | /10 | صحة مواضع الوقف |
+
+---
+
+## ✅ ما تم إنجازه
+
+- [x] Angular 19 + Material 19 (mat.define-theme — New M3 API)
+- [x] لا بيانات مُصطنعة — كل شيء من Firestore
+- [x] CRUD كامل: متسابقون / محكّمون / جلسات
+- [x] نموذج التسجيل: الاسم، الهوية، جوال ولي الأمر، الشيخ (من Firestore)، العمر، الأجزاء
+- [x] صفحة عامة بسيطة: معلومات ثابتة + زر تسجيل فقط
+- [x] قائمة انتظار المحكّم — من Firestore (الجلسة اليوم)
+- [x] نموذج التقييم مع نسب مئوية سريعة + ضبط دقيق
+- [x] نشر النتائج مع تأكيد + سجل audit
+- [x] تصدير Excel (lazy loaded)
+- [x] Firestore Security Rules كاملة
+- [x] فصل كامل: Core / Shared / Features

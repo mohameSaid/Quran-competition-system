@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ─────────────────────────────────────────────
+    function isAuth()   { return request.auth != null; }
+    function uid()      { return request.auth.uid; }
+    function userDoc()  { return get(/databases/$(database)/documents/users/$(uid())).data; }
+    function role()     { return isAuth() ? userDoc().role : 'public'; }
+    function isAdmin()  { return role() == 'admin'; }
+    function isSheikh() { return role() == 'sheikh'; }
+    function mySheikhId() { return userDoc().sheikhId; }
+
+    // ── Users ────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read:   if isAuth() && (uid() == userId || isAdmin());
+      allow create: if isAuth() && uid() == userId;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ── Sheikhs ──────────────────────────────────────────────
+    match /sheikhs/{sheikhId} {
+      allow read:  if true;          // public can read sheikh names for registration
+      allow write: if isAdmin();
+    }
+
+    // ── Competitions ─────────────────────────────────────────
+    match /competitions/{compId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+
+      // Students
+      match /students/{studentId} {
+        allow read:  if isAdmin() || isSheikh();
+        allow create: if true;       // public registration allowed
+        allow update: if isAdmin() || (
+          isSheikh() &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'updatedAt']) &&
+          request.resource.data.status == 'evaluated'
+        );
+        allow delete: if isAdmin();
+      }
+
+      // Scores — immutable once written
+      match /scores/{scoreId} {
+        allow read: if
+          resource.data.isPublished == true ||
+          isAdmin() ||
+          (isSheikh() && resource.data.sheikhId == mySheikhId());
+
+        allow create: if
+          isSheikh() &&
+          request.resource.data.sheikhId == mySheikhId() &&
+          request.resource.data.isPublished == false;
+
+        allow update: if isAdmin();  // admin-only corrections
+        allow delete: if false;      // scores never deleted
+      }
+
+      // Sessions
+      match /sessions/{sessionId} {
+        allow read: if isAdmin() ||
+          (isSheikh() && resource.data.sheikhId == mySheikhId());
+        allow write: if isAdmin();
+      }
+    }
+
+    // ── Audit Logs ───────────────────────────────────────────
+    match /auditLogs/{logId} {
+      allow read:          if isAdmin();
+      allow create:        if isAuth();
+      allow update, delete: if false;
+    }
+  }
+}

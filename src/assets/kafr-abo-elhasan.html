@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>قرية كفر أبو الحسن — الموقع الرسمي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #FAFAF8;
+      --fg: #1A1A1A;
+      --primary: #1B5E20;
+      --primary-light: #2E7D32;
+      --primary-dark: #0D4A1F;
+      --primary-fg: #FFFFFF;
+      --accent: #F59E0B;
+      --accent-fg: #1A1A1A;
+      --secondary: #F0FDF4;
+      --muted: #F3F4F6;
+      --muted-fg: #6B7280;
+      --card: #FFFFFF;
+      --card-fg: #1A1A1A;
+      --border: #E5E7EB;
+      --radius: 0.75rem;
+      --font: 'Cairo', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; direction: rtl; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      direction: rtl;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--muted); }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+    /* ===== KEYFRAMES ===== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes pulseGlow {
+      0%,100% {
+        box-shadow: 0 0 20px rgba(245,158,11,.5), 0 0 40px rgba(245,158,11,.25), 0 4px 20px rgba(0,0,0,.3);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 35px rgba(245,158,11,.8), 0 0 60px rgba(245,158,11,.4), 0 4px 20px rgba(0,0,0,.3);
+        transform: scale(1.03);
+      }
+    }
+    @keyframes bounceSlow {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(10px); }
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    @keyframes pulseDot {
+      0%,100% { opacity: 1; }
+      50%      { opacity: .4; }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== UTILITY ===== */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+    @media(min-width:640px)  { .container { padding: 0 1.5rem; } }
+    @media(min-width:1024px) { .container { padding: 0 2rem; } }
+
+    .section-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .375rem 1rem; border-radius: 9999px;
+      background: rgba(27,94,32,.1); color: var(--primary);
+      font-size: .8rem; font-weight: 700; margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+      font-weight: 900; color: var(--fg);
+      position: relative; display: inline-block;
+    }
+    .section-title::after {
+      content: '';
+      position: absolute; bottom: -8px; right: 0;
+      width: 60%; height: 3px;
+      background: linear-gradient(to left, var(--accent), transparent);
+      border-radius: 2px;
+    }
+
+    .section-sub {
+      margin-top: 1.5rem; color: var(--muted-fg);
+      font-size: .95rem; max-width: 36rem; margin-left: auto; margin-right: auto;
+    }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-card { opacity: 0; transform: translateY(30px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
+    .reveal-card.visible { opacity: 1; transform: translateY(0); }
+
+    /* ===== NAVBAR ===== */
+    #navbar {
+      position: fixed; top: 0; right: 0; left: 0; z-index: 1000;
+      transition: all .5s ease;
+    }
+    #navbar.scrolled {
+      background: rgba(255,255,255,.97);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(27,94,32,.08);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 4rem;
+    }
+    @media(min-width:768px) { .nav-inner { height: 5rem; } }
+
+    .nav-logo { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+    .nav-logo-icon {
+      width: 2.5rem; height: 2.5rem; border-radius: .75rem;
+      background: var(--primary); display: flex; align-items: center;
+      justify-content: center; font-size: 1.3rem; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .nav-logo-text { display: none; }
+    @media(min-width:640px) { .nav-logo-text { display: block; } }
+    .nav-logo-name {
+      font-weight: 900; font-size: 1rem; line-height: 1.2;
+      color: white; transition: color .3s;
+    }
+    #navbar.scrolled .nav-logo-name { color: var(--primary); }
+    .nav-logo-sub { font-size: .7rem; color: rgba(255,255,255,.8); transition: color .3s; }
+    #navbar.scrolled .nav-logo-sub { color: var(--muted-fg); }
+
+    .nav-links { display: none; align-items: center; gap: .25rem; }
+    @media(min-width:1024px) { .nav-links { display: flex; } }
+    .nav-links a {
+      padding: .5rem 1rem; border-radius: .5rem;
+      font-size: .85rem; font-weight: 600;
+      color: rgba(255,255,255,.9); transition: all .2s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,.15); color: white; }
+    #navbar.scrolled .nav-links a { color: var(--fg); }
+    #navbar.scrolled .nav-links a:hover { background: rgba(27,94,32,.1); color: var(--primary); }
+
+    .nav-actions { display: flex; align-items: center; gap: .75rem; }
+    .nav-cta {
+      display: none; align-items: center; gap: .5rem;
+      padding: .625rem 1.25rem; border-radius: 9999px;
+      background: var(--accent); color: var(--accent-fg);
+      font-size: .85rem; font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      transition: all .3s; white-space: nowrap;
+    }
+    @media(min-width:768px) { .nav-cta { display: flex; } }
+    .nav-cta:hover { background: #fbbf24; transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+
+    .hamburger {
+      display: flex; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      padding: .5rem; border-radius: .5rem; transition: background .2s;
+    }
+    @media(min-width:1024px) { .hamburger { display: none; } }
+    .hamburger:hover { background: rgba(255,255,255,.15); }
+    #navbar.scrolled .hamburger:hover { background: var(--muted); }
+    .hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: white; border-radius: 2px; transition: all .3s;
+    }
+    #navbar.scrolled .hamburger span { background: var(--fg); }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Mobile menu */
+    #mobile-menu {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height .5s ease, opacity .4s ease;
+      background: rgba(255,255,255,.99);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 20px 40px rgba(0,0,0,.1);
+    }
+    #mobile-menu.open { max-height: 600px; opacity: 1; }
+    .mobile-menu-inner { padding: 1rem; display: flex; flex-direction: column; gap: .25rem; }
+    .mobile-menu-inner a {
+      padding: .75rem 1rem; border-radius: .75rem;
+      font-weight: 600; color: var(--fg); font-size: .95rem;
+      transition: all .2s; border: 1px solid transparent;
+    }
+    .mobile-menu-inner a:hover { background: var(--secondary); color: var(--primary); border-color: rgba(27,94,32,.2); }
+    .mobile-cta-link {
+      margin-top: .5rem; display: flex; align-items: center;
+      justify-content: center; gap: .5rem;
+      padding: .875rem 1.25rem; border-radius: 9999px;
+      background: var(--accent); color: var(--accent-fg);
+      font-weight: 700; font-size: .95rem;
+    }
+
+    /* Mobile sticky CTA */
+    #sticky-cta {
+      position: fixed; bottom: 0; right: 0; left: 0; z-index: 999;
+      padding: .75rem 1rem; background: white;
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 20px rgba(0,0,0,.1);
+    }
+    @media(min-width:768px) { #sticky-cta { display: none; } }
+    #sticky-cta a {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      width: 100%; padding: .875rem; border-radius: 9999px;
+      background: var(--accent); color: var(--accent-fg);
+      font-weight: 700; font-size: .95rem;
+      animation: pulseGlow 2s cubic-bezier(.4,0,.6,1) infinite;
+    }
+
+    /* ===== HERO ===== */
+    #home {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; width: 100%;
+      height: 130%; top: -15%;
+      will-change: transform;
+    }
+    .hero-bg img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,.7), rgba(0,0,0,.6), rgba(0,0,0,.75));
+      z-index: 1;
+    }
+    .hero-tint {
+      position: absolute; inset: 0;
+      background: rgba(27,94,32,.2); z-index: 1;
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 56rem; margin: 0 auto;
+      padding: 5rem 1rem 8rem;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .5rem 1rem; border-radius: 9999px;
+      border: 1px solid rgba(245,158,11,.5);
+      background: rgba(245,158,11,.1);
+      backdrop-filter: blur(8px);
+      margin-bottom: 2rem;
+      animation: fadeInUp .9s cubic-bezier(.16,1,.3,1) .1s both;
+    }
+    .hero-badge-main { color: var(--accent); font-size: .85rem; font-weight: 700; }
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); animation: pulseDot 1.5s ease-in-out infinite;
+    }
+    .hero-badge-sub { color: rgba(255,255,255,.8); font-size: .85rem; }
+
+    .hero-h1 {
+      font-size: clamp(2.2rem, 6vw, 4.5rem);
+      font-weight: 900; color: white;
+      text-shadow: 0 2px 20px rgba(0,0,0,.5);
+      line-height: 1.2; margin-bottom: 1.5rem;
+      animation: fadeInUp .9s cubic-bezier(.16,1,.3,1) .2s both;
+    }
+    .hero-h1 span { color: var(--accent); }
+
+    .hero-sub1 {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: rgba(255,255,255,.85); font-weight: 500;
+      margin-bottom: 1rem; max-width: 36rem; margin-left: auto; margin-right: auto;
+      animation: fadeInUp .9s cubic-bezier(.16,1,.3,1) .4s both;
+    }
+    .hero-sub2 {
+      font-size: clamp(.9rem, 1.8vw, 1.1rem);
+      color: rgba(255,255,255,.7);
+      margin-bottom: 2.5rem; max-width: 30rem; margin-left: auto; margin-right: auto;
+      animation: fadeInUp .9s cubic-bezier(.16,1,.3,1) .5s both;
+    }
+
+    .hero-stats {
+      display: flex; align-items: center; justify-content: center;
+      gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+      animation: fadeInUp .9s cubic-bezier(.16,1,.3,1) .6s both;
+    }
+    @media(min-width:768px) { .hero-stats { gap: 3rem; } }
+    .hero-stat-val { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 900; color: var(--accent); }
+    .hero-stat-lbl { color: rgba(255,255,255,.7); font-size: .8rem; font-weight: 500; }
+
+    .hero-btns {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 1rem;
+      animation: fadeInUp .9s cubic-bezier(.16,1,.3,1) .7s both;
+    }
+    @media(min-width:640px) { .hero-btns { flex-direction: row; } }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .75rem;
+      padding: 1rem 2rem; border-radius: 9999px;
+      background: var(--accent); color: var(--accent-fg);
+      font-weight: 900; font-size: clamp(.9rem, 2vw, 1.1rem);
+      box-shadow: 0 8px 30px rgba(0,0,0,.3);
+      transition: all .3s; animation: pulseGlow 2s cubic-bezier(.4,0,.6,1) infinite;
+    }
+    .btn-primary:hover { background: #fbbf24; transform: scale(1.05); }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: .75rem;
+      padding: 1rem 2rem; border-radius: 9999px;
+      background: rgba(255,255,255,.1); color: white;
+      border: 2px solid rgba(255,255,255,.4);
+      font-weight: 700; font-size: clamp(.9rem, 2vw, 1.1rem);
+      backdrop-filter: blur(8px); transition: all .3s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.7); }
+
+    .scroll-indicator {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      z-index: 2; display: flex; flex-direction: column; align-items: center; gap: .5rem;
+    }
+    .scroll-indicator span { color: rgba(255,255,255,.6); font-size: .75rem; font-weight: 500; }
+    .scroll-arrow {
+      width: 28px; height: 28px; color: rgba(255,255,255,.6);
+      animation: bounceSlow 2s ease-in-out infinite;
+    }
+
+    /* ===== NEWS ===== */
+    #news { padding: 4rem 0; background: var(--bg); }
+    @media(min-width:768px) { #news { padding: 6rem 0; } }
+
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    @media(min-width:768px) { .section-header { margin-bottom: 4rem; } }
+
+    .news-grid {
+      display: grid; grid-template-columns: 1fr; gap: 1.5rem;
+    }
+    @media(min-width:768px) { .news-grid { grid-template-columns: repeat(3, 1fr); gap: 2rem; } }
+
+    .news-card {
+      background: var(--card); border-radius: 1rem;
+      border: 1px solid var(--border); overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s cubic-bezier(.16,1,.3,1);
+    }
+    .news-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 20px 40px rgba(27,94,32,.15); }
+
+    .news-img-wrap { position: relative; height: 13rem; overflow: hidden; }
+    .news-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .7s ease;
+    }
+    .news-card:hover .news-img-wrap img { transform: scale(1.1); }
+    .news-img-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.4), transparent);
+    }
+    .news-cat {
+      position: absolute; top: .75rem; right: .75rem;
+      padding: .25rem .75rem; border-radius: 9999px;
+      font-size: .7rem; font-weight: 700;
+    }
+    .cat-projects { background: #dbeafe; color: #1d4ed8; }
+    .cat-education { background: #ede9fe; color: #7c3aed; }
+    .cat-competition { background: #fef3c7; color: #b45309; }
+
+    .news-body { padding: 1.25rem; }
+    .news-date { display: flex; align-items: center; gap: .4rem; color: var(--muted-fg); font-size: .8rem; margin-bottom: .75rem; }
+    .news-date svg { color: var(--primary); }
+    .news-title { font-weight: 700; color: var(--card-fg); font-size: .95rem; line-height: 1.5; margin-bottom: .75rem; transition: color .2s; }
+    .news-card:hover .news-title { color: var(--primary); }
+    .news-excerpt { color: var(--muted-fg); font-size: .82rem; line-height: 1.7; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .news-read-more {
+      display: inline-flex; align-items: center; gap: .4rem;
+      color: var(--primary); font-weight: 700; font-size: .82rem;
+      background: none; border: none; cursor: pointer; transition: gap .2s;
+    }
+    .news-read-more:hover { gap: .7rem; }
+
+    /* ===== FIGURES ===== */
+    #figures { padding: 4rem 0; background: var(--secondary); }
+    @media(min-width:768px) { #figures { padding: 6rem 0; } }
+
+    .figures-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem;
+    }
+    @media(min-width:768px) { .figures-grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } }
+
+    .figure-card {
+      background: var(--card); border-radius: 1rem;
+      border: 1px solid var(--border); padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      transition: all .4s cubic-bezier(.16,1,.3,1);
+    }
+    .figure-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(27,94,32,.12); }
+
+    .figure-avatar {
+      width: 5rem; height: 5rem; border-radius: 50%;
+      overflow: hidden; margin: 0 auto 1rem;
+      border: 4px solid rgba(27,94,32,.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      transition: border-color .3s;
+    }
+    @media(min-width:768px) { .figure-avatar { width: 6rem; height: 6rem; } }
+    .figure-card:hover .figure-avatar { border-color: rgba(245,158,11,.5); }
+    .figure-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .figure-name { font-weight: 900; font-size: .85rem; color: var(--card-fg); margin-bottom: .4rem; transition: color .2s; }
+    @media(min-width:768px) { .figure-name { font-size: 1rem; } }
+    .figure-card:hover .figure-name { color: var(--primary); }
+    .figure-role {
+      display: inline-block; padding: .2rem .75rem; border-radius: 9999px;
+      background: rgba(27,94,32,.1); color: var(--primary);
+      font-size: .7rem; font-weight: 700; margin-bottom: .75rem;
+    }
+    .figure-desc { color: var(--muted-fg); font-size: .75rem; line-height: 1.6; }
+    @media(min-width:768px) { .figure-desc { font-size: .82rem; } }
+
+    /* ===== SERVICES ===== */
+    #services { padding: 4rem 0; background: var(--bg); }
+    @media(min-width:768px) { #services { padding: 6rem 0; } }
+
+    .services-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;
+    }
+    @media(min-width:768px) { .services-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; } }
+
+    .service-card {
+      background: var(--card); border-radius: 1rem;
+      border: 1px solid var(--border); padding: 1.25rem;
+      cursor: default;
+      transition: all .35s cubic-bezier(.16,1,.3,1);
+    }
+    @media(min-width:768px) { .service-card { padding: 1.75rem; } }
+    .service-card:hover {
+      background: var(--primary); color: white;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(27,94,32,.25);
+    }
+    .service-icon { font-size: 2rem; margin-bottom: 1rem; transition: filter .3s; }
+    @media(min-width:768px) { .service-icon { font-size: 2.5rem; } }
+    .service-card:hover .service-icon { filter: brightness(0) invert(1); }
+    .service-title { font-weight: 900; font-size: .85rem; margin-bottom: .5rem; transition: color .3s; }
+    @media(min-width:768px) { .service-title { font-size: 1rem; } }
+    .service-desc { color: var(--muted-fg); font-size: .75rem; line-height: 1.6; transition: color .3s; }
+    @media(min-width:768px) { .service-desc { font-size: .82rem; } }
+    .service-card:hover .service-desc { color: rgba(255,255,255,.85); }
+
+    /* ===== OBITUARIES ===== */
+    #obituaries { padding: 4rem 0; background: var(--muted); }
+    @media(min-width:768px) { #obituaries { padding: 5rem 0; } }
+
+    .obituaries-list { display: flex; flex-direction: column; gap: 1rem; max-width: 56rem; margin: 0 auto; }
+
+    .obituary-card {
+      background: var(--card); border-radius: 1rem;
+      border: 1px solid var(--border); padding: 1.25rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      transition: box-shadow .3s;
+    }
+    @media(min-width:768px) { .obituary-card { padding: 1.5rem; } }
+    .obituary-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+
+    .obituary-inner { display: flex; flex-direction: column; gap: 1rem; }
+    @media(min-width:640px) { .obituary-inner { flex-direction: row; align-items: flex-start; } }
+
+    .obituary-icon {
+      flex-shrink: 0; width: 3rem; height: 3rem; border-radius: 50%;
+      background: #f3f4f6; border: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+    .obituary-content { flex: 1; }
+    .obituary-header {
+      display: flex; flex-direction: column; gap: .5rem;
+      margin-bottom: .5rem;
+    }
+    @media(min-width:640px) { .obituary-header { flex-direction: row; align-items: center; justify-content: space-between; } }
+    .obituary-name { font-weight: 900; color: var(--fg); font-size: 1rem; }
+    .obituary-date { display: flex; align-items: center; gap: .35rem; color: var(--muted-fg); font-size: .8rem; }
+    .obituary-desc { color: var(--muted-fg); font-size: .82rem; line-height: 1.7; }
+    .obituary-mercy { margin-top: .5rem; color: #9ca3af; font-size: .72rem; font-style: italic; }
+
+    .obituary-verse {
+      margin-top: 2rem; text-align: center; padding: 1.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .obituary-verse p { color: var(--muted-fg); font-size: .85rem; font-weight: 500; line-height: 2; }
+    .obituary-verse small { color: rgba(107,114,128,.6); font-size: .72rem; }
+
+    /* ===== COMPETITION ===== */
+    #competition {
+      position: relative; padding: 5rem 0; overflow: hidden;
+      background: linear-gradient(135deg, #0D3B1A 0%, #1B5E20 40%, #0D4A1F 70%, #0A3015 100%);
+    }
+    @media(min-width:768px) { #competition { padding: 8rem 0; } }
+
+    .competition-pattern {
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .competition-glow {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px; height: 800px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .competition-deco1 {
+      position: absolute; top: 2.5rem; right: 2.5rem;
+      width: 8rem; height: 8rem; border-radius: 50%;
+      border: 1px solid rgba(245,158,11,.2); opacity: .4;
+    }
+    .competition-deco2 {
+      position: absolute; top: 4rem; right: 4rem;
+      width: 5rem; height: 5rem; border-radius: 50%;
+      border: 1px solid rgba(245,158,11,.15); opacity: .3;
+    }
+    .competition-deco3 {
+      position: absolute; bottom: 2.5rem; left: 2.5rem;
+      width: 10rem; height: 10rem; border-radius: 50%;
+      border: 1px solid rgba(245,158,11,.15); opacity: .3;
+    }
+
+    .competition-inner { position: relative; z-index: 1; max-width: 56rem; margin: 0 auto; }
+
+    .competition-quran-icon {
+      text-align: center; margin-bottom: 1.5rem;
+      font-size: clamp(3.5rem, 8vw, 4.5rem);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .competition-badge {
+      text-align: center; margin-bottom: 1.5rem;
+    }
+    .competition-badge span {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .5rem 1.25rem; border-radius: 9999px;
+      border: 1px solid rgba(245,158,11,.4);
+      background: rgba(245,158,11,.1);
+      color: var(--accent); font-size: .85rem; font-weight: 700;
+    }
+
+    .competition-title {
+      text-align: center; margin-bottom: 1.5rem;
+      font-weight: 900; color: var(--accent);
+      font-size: clamp(2rem, 6vw, 4rem); line-height: 1.2;
+    }
+    .competition-desc {
+      text-align: center; color: rgba(255,255,255,.8);
+      font-size: clamp(.9rem, 2vw, 1.1rem); max-width: 40rem;
+      margin: 0 auto 2.5rem; line-height: 1.8;
+    }
+
+    .competition-cards {
+      display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2.5rem;
+    }
+    @media(min-width:768px) { .competition-cards { grid-template-columns: repeat(3, 1fr); } }
+
+    .comp-card {
+      background: rgba(255,255,255,.1); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.2); border-radius: 1rem;
+      padding: 1.25rem; text-align: center;
+      transition: background .3s;
+    }
+    .comp-card:hover { background: rgba(255,255,255,.15); }
+    .comp-card-icon { font-size: 2rem; margin-bottom: .75rem; }
+    .comp-card-label { color: rgba(255,255,255,.6); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .25rem; }
+    .comp-card-value { color: white; font-weight: 700; font-size: .9rem; line-height: 1.5; }
+
+    .competition-two-col {
+      display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: start;
+    }
+    @media(min-width:1024px) { .competition-two-col { grid-template-columns: 1fr 1fr; } }
+
+    .conditions-box {
+      background: rgba(255,255,255,.05); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15); border-radius: 1rem;
+      padding: 1.5rem;
+    }
+    @media(min-width:768px) { .conditions-box { padding: 2rem; } }
+
+    .conditions-title {
+      color: var(--accent); font-weight: 900; font-size: 1.1rem;
+      margin-bottom: 1.25rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .conditions-list { display: flex; flex-direction: column; gap: .75rem; }
+    .condition-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      color: rgba(255,255,255,.85); font-size: .85rem; line-height: 1.6;
+    }
+    .condition-check {
+      flex-shrink: 0; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+      background: rgba(245,158,11,.2); border: 1px solid rgba(245,158,11,.4);
+      display: flex; align-items: center; justify-content: center;
+      margin-top: .1rem; font-size: .7rem; color: var(--accent);
+    }
+
+    /* Age conditions sub-list */
+    .age-conditions-title {
+      color: rgba(255,255,255,.85); font-size: .85rem; line-height: 1.6;
+      font-weight: 700; margin-bottom: .5rem;
+    }
+    .age-conditions-list { display: flex; flex-direction: column; gap: .4rem; padding-right: .5rem; }
+    .age-condition-item {
+      display: flex; align-items: center; gap: .5rem;
+      color: rgba(255,255,255,.8); font-size: .82rem; line-height: 1.5;
+    }
+    .age-diamond { color: var(--accent); font-size: .75rem; flex-shrink: 0; }
+
+    .cta-panel {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; gap: 1.5rem;
+    }
+
+    .urgency-badge {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .5rem 1rem; border-radius: 9999px;
+      background: rgba(239,68,68,.2); border: 1px solid rgba(248,113,113,.3);
+    }
+    .urgency-dot {
+      width: .5rem; height: .5rem; border-radius: 50%;
+      background: #f87171; animation: pulseDot 1.5s ease-in-out infinite;
+    }
+    .urgency-text { color: #fca5a5; font-size: .85rem; font-weight: 700; }
+
+    .cta-sub { color: rgba(255,255,255,.7); font-size: .85rem; max-width: 18rem; line-height: 1.6; }
+
+    .btn-cta-main {
+      display: inline-flex; align-items: center; gap: .75rem;
+      padding: 1.25rem 2.5rem; border-radius: 9999px;
+      background: var(--accent); color: var(--accent-fg);
+      font-weight: 900; font-size: clamp(1rem, 2.5vw, 1.2rem);
+      box-shadow: 0 8px 30px rgba(0,0,0,.3);
+      border: none; cursor: pointer;
+      animation: pulseGlow 2s cubic-bezier(.4,0,.6,1) infinite;
+      transition: background .3s;
+    }
+    .btn-cta-main:hover { background: #fbbf24; }
+
+    .cta-note { color: rgba(255,255,255,.5); font-size: .72rem; }
+
+    .cta-mini-stats { display: flex; align-items: center; gap: 1.5rem; padding-top: .5rem; }
+    .mini-stat-val { color: var(--accent); font-weight: 900; font-size: 1.1rem; }
+    .mini-stat-lbl { color: rgba(255,255,255,.5); font-size: .72rem; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      padding-top: 3.5rem; padding-bottom: 2rem;
+      background: linear-gradient(180deg, #0D3B1A 0%, #071E0D 100%);
+    }
+
+    .footer-grid {
+      display: grid; grid-template-columns: 1fr; gap: 2.5rem;
+      padding-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    @media(min-width:768px) { .footer-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .footer-logo { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+    .footer-logo-icon {
+      width: 2.5rem; height: 2.5rem; border-radius: .75rem;
+      background: var(--primary); display: flex; align-items: center;
+      justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .footer-logo-name { color: white; font-weight: 900; font-size: .95rem; line-height: 1.2; }
+    .footer-logo-sub { color: rgba(255,255,255,.5); font-size: .7rem; }
+
+    .footer-about { color: rgba(255,255,255,.6); font-size: .82rem; line-height: 1.7; margin-bottom: 1.25rem; }
+
+    .footer-socials { display: flex; align-items: center; gap: .75rem; }
+    .social-btn {
+      width: 2.25rem; height: 2.25rem; border-radius: 50%;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.6); transition: all .3s;
+    }
+    .social-btn:hover { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+
+    .footer-col-title {
+      color: white; font-weight: 900; font-size: .95rem;
+      margin-bottom: 1.25rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .footer-col-title-bar { width: 4px; height: 1.25rem; background: var(--accent); border-radius: 2px; }
+
+    .footer-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+    .footer-link {
+      color: rgba(255,255,255,.6); font-size: .82rem; font-weight: 500;
+      display: flex; align-items: center; gap: .35rem; padding: .25rem 0;
+      transition: color .2s;
+    }
+    .footer-link:hover { color: var(--accent); }
+    .footer-link svg { color: rgba(245,158,11,.4); transition: color .2s; }
+    .footer-link:hover svg { color: var(--accent); }
+
+    .footer-contact-list { display: flex; flex-direction: column; gap: 1rem; }
+    .footer-contact-item { display: flex; align-items: flex-start; gap: .75rem; }
+    .footer-contact-icon {
+      flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 50%;
+      background: rgba(255,255,255,.1); display: flex; align-items: center;
+      justify-content: center; font-size: .85rem;
+    }
+    .footer-contact-label { color: rgba(255,255,255,.4); font-size: .7rem; margin-bottom: .15rem; }
+    .footer-contact-val { color: rgba(255,255,255,.75); font-size: .82rem; }
+    .footer-contact-val a { color: rgba(255,255,255,.75); transition: color .2s; }
+    .footer-contact-val a:hover { color: var(--accent); }
+
+    .footer-bottom {
+      padding-top: 1.5rem; display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between; gap: .75rem;
+    }
+    @media(min-width:640px) { .footer-bottom { flex-direction: row; } }
+    .footer-copy { color: rgba(255,255,255,.4); font-size: .82rem; text-align: center; }
+    .footer-legal { display: flex; align-items: center; gap: 1rem; }
+    .footer-legal a { color: rgba(255,255,255,.4); font-size: .72rem; transition: color .2s; }
+    .footer-legal a:hover { color: rgba(255,255,255,.7); }
+    .footer-legal-sep { color: rgba(255,255,255,.2); }
+
+    /* ===== MOBILE BOTTOM PADDING ===== */
+    .mobile-pad { height: 4rem; }
+    @media(min-width:768px) { .mobile-pad { display: none; } }
+  </style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="navbar">
+  <div class="container">
+    <div class="nav-inner">
+      <!-- Logo -->
+      <a href="#home" class="nav-logo" aria-label="الصفحة الرئيسية">
+        <div class="nav-logo-icon">🕌</div>
+        <div class="nav-logo-text">
+          <div class="nav-logo-name">قرية كفر أبو الحسن</div>
+          <div class="nav-logo-sub">مركز قويسنا — المنوفية</div>
+        </div>
+      </a>
+
+      <!-- Desktop Links -->
+      <div class="nav-links">
+        <a href="#home">الرئيسية</a>
+        <a href="#news">الأخبار</a>
+        <a href="#figures">الشخصيات</a>
+        <a href="#services">الخدمات</a>
+        <a href="#obituaries">الوفيات</a>
+        <a href="#competition">المسابقة</a>
+      </div>
+
+      <!-- Actions -->
+      <div class="nav-actions">
+        <a href="#competition" class="nav-cta">
+          <span>🏆</span>
+          <span>سجل في المسابقة</span>
+        </a>
+        <button class="hamburger" id="hamburger" aria-label="فتح القائمة" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu">
+    <div class="mobile-menu-inner">
+      <a href="#home" class="mobile-link">الرئيسية</a>
+      <a href="#news" class="mobile-link">الأخبار</a>
+      <a href="#figures" class="mobile-link">الشخصيات</a>
+      <a href="#services" class="mobile-link">الخدمات</a>
+      <a href="#obituaries" class="mobile-link">الوفيات</a>
+      <a href="#competition" class="mobile-link">المسابقة</a>
+      <a href="#competition" class="mobile-cta-link mobile-link">
+        <span>🏆</span>
+        <span>سجل في المسابقة</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="home" aria-label="قسم الترحيب الرئيسي">
+  <div class="hero-bg" id="hero-bg">
+    <img
+      src="https://images.unsplash.com/photo-1675018059810-0a96e51ba374?auto=format&fit=crop&w=1920&q=80"
+      alt="مسجد جميل في قرية مصرية محاط بالطبيعة الخضراء، سماء صافية وهواء نقي"
+      loading="eager"
+    />
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-tint"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-main">🕌 الموقع الرسمي</span>
+      <span class="hero-badge-dot"></span>
+      <span class="hero-badge-sub">قرية كفر أبو الحسن</span>
+    </div>
+
+    <h1 class="hero-h1">
+      أهلاً وسهلاً بكم في<br />
+      <span>قرية كفر أبو الحسن</span>
+    </h1>
+
+    <p class="hero-sub1">قرية عريقة في محافظة المنوفية</p>
+    <p class="hero-sub2">تجمع بين الأصالة والتراث — مركز قويسنا، جمهورية مصر العربية</p>
+
+    <div class="hero-stats">
+      <div class="text-center">
+        <div class="hero-stat-val">7,730</div>
+        <div class="hero-stat-lbl">نسمة</div>
+      </div>
+      <div class="text-center">
+        <div class="hero-stat-val">1,954</div>
+        <div class="hero-stat-lbl">أسرة</div>
+      </div>
+      <div class="text-center">
+        <div class="hero-stat-val">3</div>
+        <div class="hero-stat-lbl">دورات مسابقة</div>
+      </div>
+    </div>
+
+    <div class="hero-btns">
+      <a href="#competition" class="btn-primary">
+        <span>📖</span>
+        <span>سجل في مسابقة القرآن الكريم</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </a>
+      <a href="#news" class="btn-secondary">
+        <span>📰</span>
+        <span>تصفح الأخبار</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>تمرير للأسفل</span>
+    <svg class="scroll-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ===== NEWS ===== -->
+<section id="news" aria-labelledby="news-title">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-badge">
+        <span>📰</span>
+        <span>أحدث ما يدور في القرية</span>
+      </div>
+      <h2 class="section-title" id="news-title">آخر الأخبار</h2>
+      <p class="section-sub">تابع آخر المستجدات والأحداث التي تشهدها قريتنا العزيزة</p>
+    </div>
+
+    <div class="news-grid">
+      <!-- Card 1 -->
+      <div class="news-card reveal-card" style="transition-delay:0ms">
+        <div class="news-img-wrap">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1c5508df4-1773054348045.png" alt="أعمال حفر وتمديد أنابيب الصرف الصحي في أحد شوارع القرية" loading="lazy" />
+          <div class="news-img-overlay"></div>
+          <span class="news-cat cat-projects">مشاريع</span>
+        </div>
+        <div class="news-body">
+          <div class="news-date">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>10 يونيو 2026</span>
+          </div>
+          <h3 class="news-title">افتتاح مشروع تطوير شبكة الصرف الصحي</h3>
+          <p class="news-excerpt">أُعلن عن افتتاح المرحلة الأولى من مشروع تطوير وتحديث شبكة الصرف الصحي بالقرية، بتكلفة تجاوزت مليوني جنيه مصري.</p>
+          <button class="news-read-more">
+            <span>اقرأ المزيد</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="news-card reveal-card" style="transition-delay:120ms">
+        <div class="news-img-wrap">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1e3a37a89-1777066769040.png" alt="طلاب مدرسة يتسلمون مستلزمات دراسية في قاعة مدرسية" loading="lazy" />
+          <div class="news-img-overlay"></div>
+          <span class="news-cat cat-education">تعليم</span>
+        </div>
+        <div class="news-body">
+          <div class="news-date">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>5 يونيو 2026</span>
+          </div>
+          <h3 class="news-title">توزيع مستلزمات المدارس على أبناء القرية</h3>
+          <p class="news-excerpt">نظّم مجلس القرية حملة لتوزيع الأدوات والمستلزمات المدرسية على أبناء الأسر المحتاجة استعداداً للعام الدراسي الجديد.</p>
+          <button class="news-read-more">
+            <span>اقرأ المزيد</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="news-card reveal-card" style="transition-delay:240ms">
+        <div class="news-img-wrap">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_154c631e2-1764906424023.png" alt="قرآن كريم مفتوح على طاولة خشبية بإضاءة دافئة" loading="lazy" />
+          <div class="news-img-overlay"></div>
+          <span class="news-cat cat-competition">مسابقة</span>
+        </div>
+        <div class="news-body">
+          <div class="news-date">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>1 يونيو 2026</span>
+          </div>
+          <h3 class="news-title">انطلاق مسابقة القرآن الكريم السنوية الثالثة</h3>
+          <p class="news-excerpt">أطلقت القرية رسمياً باب التسجيل في الدورة الثالثة من مسابقة حفظ وتجويد القرآن الكريم بمشاركة واسعة من أبناء القرية.</p>
+          <button class="news-read-more">
+            <span>اقرأ المزيد</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FIGURES ===== -->
+<section id="figures" aria-labelledby="figures-title">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-badge">
+        <span>⭐</span>
+        <span>أعلام القرية</span>
+      </div>
+      <h2 class="section-title" id="figures-title">شخصيات بارزة من القرية</h2>
+      <p class="section-sub">نفخر بأبناء قريتنا الذين أضاؤا الطريق وخدموا مجتمعهم بإخلاص</p>
+    </div>
+
+    <div class="figures-grid">
+      <div class="figure-card reveal-card" style="transition-delay:0ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1d7668ed1-1773081462994.png" alt="صورة شخصية لرجل دين بزي إسلامي تقليدي" loading="lazy" />
+        </div>
+        <div class="figure-name">الشيخ محمد أبو الحسن</div>
+        <span class="figure-role">عالم دين</span>
+        <p class="figure-desc">من أبرز علماء المنوفية وحفظة القرآن الكريم، أسّس مدرسة لتحفيظ القرآن خدمت مئات الطلاب.</p>
+      </div>
+
+      <div class="figure-card reveal-card" style="transition-delay:100ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1b7789841-1772146118066.png" alt="صورة شخصية لطبيب في بيئة مهنية" loading="lazy" />
+        </div>
+        <div class="figure-name">د. أحمد السيد</div>
+        <span class="figure-role">طبيب وباحث</span>
+        <p class="figure-desc">رائد في مجال الطب الوقائي وخدمة المجتمع، أسهم في تحسين الخدمات الصحية بمنطقة قويسنا.</p>
+      </div>
+
+      <div class="figure-card reveal-card" style="transition-delay:200ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1f45cccaf-1763296121464.png" alt="صورة شخصية لمهندس في موقع بناء" loading="lazy" />
+        </div>
+        <div class="figure-name">المهندس خالد عبد الرحمن</div>
+        <span class="figure-role">مهندس معماري</span>
+        <p class="figure-desc">صاحب مشاريع تطوير عديدة في المنوفية، أسهمت في تحديث البنية التحتية للقرى المجاورة.</p>
+      </div>
+
+      <div class="figure-card reveal-card" style="transition-delay:300ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1c7d0ead4-1763299484523.png" alt="صورة شخصية لمعلم في بيئة تعليمية" loading="lazy" />
+        </div>
+        <div class="figure-name">الأستاذ عمر الشريف</div>
+        <span class="figure-role">معلم ومربي</span>
+        <p class="figure-desc">أكثر من 30 عاماً في خدمة التعليم بالقرية، أثّر في أجيال متعاقبة من أبناء كفر أبو الحسن.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-badge">
+        <span>⚙️</span>
+        <span>ما نقدمه لأبناء القرية</span>
+      </div>
+      <h2 class="section-title" id="services-title">خدمات القرية</h2>
+      <p class="section-sub">نسعى جاهدين لتوفير أفضل الخدمات وتطوير البنية التحتية لرفع مستوى المعيشة</p>
+    </div>
+
+    <div class="services-grid">
+      <div class="service-card reveal-card" style="transition-delay:0ms">
+        <div class="service-icon">🏥</div>
+        <div class="service-title">الخدمات الصحية</div>
+        <div class="service-desc">وحدة صحية متكاملة لخدمة أبناء القرية وتقديم الرعاية الطبية الأساسية</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:80ms">
+        <div class="service-icon">📚</div>
+        <div class="service-title">التعليم</div>
+        <div class="service-desc">مدارس ابتدائية وإعدادية وثانوية توفر تعليماً متميزاً لأبناء القرية</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:160ms">
+        <div class="service-icon">🕌</div>
+        <div class="service-title">الشؤون الدينية</div>
+        <div class="service-desc">مساجد ومراكز تحفيظ القرآن الكريم لخدمة الحياة الروحية للمجتمع</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:240ms">
+        <div class="service-icon">🏗️</div>
+        <div class="service-title">مشاريع التطوير</div>
+        <div class="service-desc">مشاريع البنية التحتية والتطوير العمراني لرفع مستوى المعيشة</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:320ms">
+        <div class="service-icon">👨‍👩‍👧‍👦</div>
+        <div class="service-title">الشؤون الاجتماعية</div>
+        <div class="service-desc">دعم الأسر المحتاجة والمبادرات الاجتماعية لتعزيز التكافل المجتمعي</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:400ms">
+        <div class="service-icon">🌾</div>
+        <div class="service-title">الزراعة</div>
+        <div class="service-desc">دعم المزارعين وتطوير القطاع الزراعي لتعزيز الاكتفاء الذاتي</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== OBITUARIES ===== -->
+<section id="obituaries" aria-labelledby="obituaries-title">
+  <div class="container">
+    <div class="section-header reveal" style="max-width:56rem;margin-left:auto;margin-right:auto;">
+      <div class="section-badge" style="background:rgba(156,163,175,.2);color:#6b7280;">
+        <span>☽</span>
+        <span>إنا لله وإنا إليه راجعون</span>
+      </div>
+      <h2 class="section-title" id="obituaries-title" style="color:var(--fg);">الوفيات</h2>
+      <p class="section-sub" style="font-size:.85rem;">نسأل الله أن يتغمد فقيدنا بواسع رحمته ويسكنه فسيح جناته</p>
+    </div>
+
+    <div class="obituaries-list">
+      <div class="obituary-card reveal-card" style="transition-delay:0ms">
+        <div class="obituary-inner">
+          <div class="obituary-icon">☽</div>
+          <div class="obituary-content">
+            <div class="obituary-header">
+              <div class="obituary-name">الحاج محمود عبد الله</div>
+              <div class="obituary-date">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>12 يونيو 2026</span>
+              </div>
+            </div>
+            <p class="obituary-desc">توفي إلى رحمة الله عن عمر ناهز 78 عاماً، بعد مسيرة حافلة بالعطاء والخدمة لأبناء قريته.</p>
+            <p class="obituary-mercy">رحمه الله وأسكنه فسيح جناته</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="obituary-card reveal-card" style="transition-delay:100ms">
+        <div class="obituary-inner">
+          <div class="obituary-icon">☽</div>
+          <div class="obituary-content">
+            <div class="obituary-header">
+              <div class="obituary-name">السيدة فاطمة حسن</div>
+              <div class="obituary-date">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>8 يونيو 2026</span>
+              </div>
+            </div>
+            <p class="obituary-desc">انتقلت إلى رحمة الله بعد مسيرة حافلة بالعطاء والتضحية، وتركت أثراً طيباً في قلوب من عرفوها.</p>
+            <p class="obituary-mercy">رحمها الله وأسكنها فسيح جناته</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="obituary-card reveal-card" style="transition-delay:200ms">
+        <div class="obituary-inner">
+          <div class="obituary-icon">☽</div>
+          <div class="obituary-content">
+            <div class="obituary-header">
+              <div class="obituary-name">الشيخ إبراهيم الصاوي</div>
+              <div class="obituary-date">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>3 يونيو 2026</span>
+              </div>
+            </div>
+            <p class="obituary-desc">فقدت القرية أحد أعلامها وحفاظ القرآن الكريم، رحمه الله وأسكنه فسيح جناته.</p>
+            <p class="obituary-mercy">رحمه الله وأسكنه فسيح جناته</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="obituary-verse reveal">
+        <p>﴿ كُلُّ نَفْسٍ ذَائِقَةُ الْمَوْتِ ثُمَّ إِلَيْنَا تُرْجَعُونَ ﴾</p>
+        <small>سورة العنكبوت — الآية 57</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPETITION ===== -->
+<section id="competition" aria-labelledby="competition-title">
+  <div class="competition-pattern"></div>
+  <div class="competition-glow"></div>
+  <div class="competition-deco1"></div>
+  <div class="competition-deco2"></div>
+  <div class="competition-deco3"></div>
+
+  <div class="competition-inner container">
+    <div class="competition-quran-icon reveal">📖</div>
+
+    <div class="competition-badge reveal">
+      <span><span>☪️</span> الدورة الثالثة — 2026</span>
+    </div>
+
+    <h2 class="competition-title reveal" id="competition-title">مسابقة القرآن الكريم السنوية</h2>
+
+    <p class="competition-desc reveal">
+      تنظم قرية كفر أبو الحسن مسابقتها السنوية لحفظ وتجويد القرآن الكريم، في إطار حرصها على نشر تعاليم الإسلام وتكريم حفاظ كتاب الله
+    </p>
+
+    <!-- Detail Cards -->
+    <div class="competition-cards reveal">
+      <div class="comp-card">
+        <div class="comp-card-icon">📅</div>
+        <div class="comp-card-label">موعد التسجيل</div>
+        <div class="comp-card-value">حتى 30 يونيو 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-card-icon">🏆</div>
+        <div class="comp-card-label">الجوائز</div>
+        <div class="comp-card-value">جوائز قيمة لجميع الفئات</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-card-icon">📋</div>
+        <div class="comp-card-label">الفئات</div>
+        <div class="comp-card-value">الأطفال (6-12) | الشباب (13-25) | الكبار (26+)</div>
+      </div>
+    </div>
+
+    <!-- Two Column -->
+    <div class="competition-two-col">
+      <!-- Conditions -->
+      <div class="conditions-box reveal">
+        <div class="conditions-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+          شروط المشاركة
+        </div>
+        <ul class="conditions-list">
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>أن يكون المتسابق من أبناء القرية أو المقيمين فيها</span>
+          </li>
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>حفظ جزء عم كحد أدنى للمشاركة</span>
+          </li>
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>التسجيل المسبق قبل انطلاق المسابقة</span>
+          </li>
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>الالتزام بمواعيد الاختبارات المحددة</span>
+          </li>
+          <!-- Age Conditions -->
+          <li class="condition-item" style="flex-direction:column;align-items:flex-start;gap:.6rem;">
+            <div style="display:flex;align-items:flex-start;gap:.75rem;width:100%;">
+              <span class="condition-check" style="margin-top:.1rem;">✓</span>
+              <div style="flex:1;">
+                <div class="age-conditions-title">شروط السن حسب المستوى:</div>
+                <ul class="age-conditions-list">
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>القرآن كاملاً:</strong> ألا يزيد السن عن 23 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>20 جزءاً:</strong> ألا يزيد السن عن 18 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>15 جزءاً:</strong> ألا يزيد السن عن 16 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>10 أجزاء:</strong> ألا يزيد السن عن 14 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>7 أجزاء:</strong> ألا يزيد السن عن 13 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>5 أجزاء:</strong> ألا يزيد السن عن 12 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>3 أجزاء:</strong> ألا يزيد السن عن 10 سنوات</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- CTA Panel -->
+      <div class="cta-panel reveal">
+        <div class="urgency-badge">
+          <span class="urgency-dot"></span>
+          <span class="urgency-text">التسجيل مفتوح — لا تفوّت الفرصة!</span>
+        </div>
+
+        <p class="cta-sub">سارع بالتسجيل قبل إغلاق باب المشاركة في 30 يونيو 2026</p>
+
+        <button class="btn-cta-main" aria-label="سجل الآن في مسابقة القرآن الكريم">
+          <span>🏆</span>
+          <span>سجل الآن في المسابقة</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </button>
+
+        <p class="cta-note">التسجيل مجاني — للاستفسار تواصل مع إدارة القرية</p>
+
+        <div class="cta-mini-stats">
+          <div class="text-center">
+            <div class="mini-stat-val">200+</div>
+            <div class="mini-stat-lbl">متسابق سابق</div>
+          </div>
+          <div class="text-center">
+            <div class="mini-stat-val">3</div>
+            <div class="mini-stat-lbl">دورات ناجحة</div>
+          </div>
+          <div class="text-center">
+            <div class="mini-stat-val">100%</div>
+            <div class="mini-stat-lbl">مجاني</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer aria-label="تذييل الصفحة">
+  <div class="container">
+    <div class="footer-grid">
+      <!-- About -->
+      <div>
+        <div class="footer-logo">
+          <div class="footer-logo-icon">🕌</div>
+          <div>
+            <div class="footer-logo-name">قرية كفر أبو الحسن</div>
+            <div class="footer-logo-sub">الموقع الرسمي</div>
+          </div>
+        </div>
+        <p class="footer-about">
+          قرية كفر أبو الحسن — إحدى قرى مركز قويسنا، محافظة المنوفية، جمهورية مصر العربية. قرية عريقة تجمع بين الأصالة والتراث.
+        </p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn" aria-label="صفحتنا على فيسبوك">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="#" class="social-btn" aria-label="صفحتنا على تويتر">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+          </a>
+          <a href="#" class="social-btn" aria-label="صفحتنا على يوتيوب">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon fill="white" points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <div class="footer-col-title">
+          <span class="footer-col-title-bar"></span>
+          روابط سريعة
+        </div>
+        <ul class="footer-links">
+          <li><a href="#home" class="footer-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>الرئيسية</a></li>
+          <li><a href="#news" class="footer-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>الأخبار</a></li>
+          <li><a href="#figures" class="footer-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>الشخصيات</a></li>
+          <li><a href="#services" class="footer-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>الخدمات</a></li>
+          <li><a href="#obituaries" class="footer-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>الوفيات</a></li>
+          <li><a href="#competition" class="footer-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>المسابقة</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div>
+        <div class="footer-col-title">
+          <span class="footer-col-title-bar"></span>
+          تواصل معنا
+        </div>
+        <ul class="footer-contact-list">
+          <li class="footer-contact-item">
+            <div class="footer-contact-icon">📍</div>
+            <div>
+              <div class="footer-contact-label">العنوان</div>
+              <div class="footer-contact-val">قرية كفر أبو الحسن، مركز قويسنا، محافظة المنوفية، مصر</div>
+            </div>
+          </li>
+          <li class="footer-contact-item">
+            <div class="footer-contact-icon">📞</div>
+            <div>
+              <div class="footer-contact-label">الهاتف</div>
+              <div class="footer-contact-val"><a href="tel:+20481234567">048-123-4567</a></div>
+            </div>
+          </li>
+          <li class="footer-contact-item">
+            <div class="footer-contact-icon">📧</div>
+            <div>
+              <div class="footer-contact-label">البريد الإلكتروني</div>
+              <div class="footer-contact-val"><a href="mailto:info@kafraboelhassan.eg">info@kafraboelhassan.eg</a></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2026 قرية كفر أبو الحسن — جميع الحقوق محفوظة</p>
+      <div class="footer-legal">
+        <a href="#">سياسة الخصوصية</a>
+        <span class="footer-legal-sep">·</span>
+        <a href="#">شروط الاستخدام</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Mobile bottom padding -->
+<div class="mobile-pad"></div>
+
+<!-- Mobile Sticky CTA -->
+<div id="sticky-cta">
+  <a href="#competition">
+    <span>🏆</span>
+    <span>سجل الآن في مسابقة القرآن الكريم</span>
+  </a>
+</div>
+
+<!-- ===== VANILLA JS ===== -->
+<script>
+  // --- Navbar scroll ---
+  var navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  }, { passive: true });
+
+  // --- Hamburger menu ---
+  var hamburger = document.getElementById('hamburger');
+  var mobileMenu = document.getElementById('mobile-menu');
+  hamburger.addEventListener('click', function() {
+    var isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+    hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    hamburger.setAttribute('aria-label', isOpen ? 'إغلاق القائمة' : 'فتح القائمة');
+  });
+
+  // Close mobile menu on link click
+  document.querySelectorAll('.mobile-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      mobileMenu.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      hamburger.setAttribute('aria-label', 'فتح القائمة');
+    });
+  });
+
+  // --- Hero parallax ---
+  var heroBg = document.getElementById('hero-bg');
+  window.addEventListener('scroll', function() {
+    if (!heroBg) return;
+    heroBg.style.transform = 'translateY(' + (window.scrollY * 0.35) + 'px)';
+  }, { passive: true });
+
+  // --- Scroll reveal ---
+  var revealEls = document.querySelectorAll('.reveal, .reveal-card');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  revealEls.forEach(function(el) { observer.observe(el); });
+
+  // --- Smooth scroll for anchor links ---
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
