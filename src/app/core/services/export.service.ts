@@ -9,7 +9,7 @@ export class ExportService {
     const rows = students.map((s, i) => ({
       '#':               i + 1,
       'الاسم الكامل':    s.fullName,
-      'رقم الهوية':      s.nationalId,
+      'الرقم القومي':      s.nationalId,
       'هاتف ولي الأمر':  s.parentPhone,
       'اسم الشيخ':       s.sheikhName,
       'العمر':           s.age,

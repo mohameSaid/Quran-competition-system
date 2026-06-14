@@ -5,8 +5,16 @@ service cloud.firestore {
     // ── Helpers ─────────────────────────────────────────────
     function isAuth()   { return request.auth != null; }
     function uid()      { return request.auth.uid; }
-    function userDoc()  { return get(/databases/$(database)/documents/users/$(uid())).data; }
-    function role()     { return isAuth() ? userDoc().role : 'public'; }
+    function userDoc()  {
+      return exists(/databases/$(database)/documents/users/$(uid()))
+        ? get(/databases/$(database)/documents/users/$(uid())).data
+        : null;
+    }
+    function role()     {
+      return isAuth() && userDoc() != null && userDoc().role != null
+        ? userDoc().role
+        : 'public';
+    }
     function isAdmin()  { return role() == 'admin'; }
     function isSheikh() { return role() == 'sheikh'; }
     function mySheikhId() { return userDoc().sheikhId; }
@@ -21,8 +29,15 @@ service cloud.firestore {
 
     // ── Sheikhs ──────────────────────────────────────────────
     match /sheikhs/{sheikhId} {
-      allow read:  if true;          // public can read sheikh names for registration
-      allow write: if isAdmin();
+      allow read:   if true;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      allow update: if isAdmin() || (
+        isSheikh() &&
+        sheikhId == mySheikhId() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['totalEvaluated'])
+      );
     }
 
     // ── Competitions ─────────────────────────────────────────
@@ -33,7 +48,7 @@ service cloud.firestore {
       // Students
       match /students/{studentId} {
         allow read:  if isAdmin() || isSheikh();
-        allow create: if true;       // public registration allowed
+        allow create: if true;
         allow update: if isAdmin() || (
           isSheikh() &&
           request.resource.data.diff(resource.data).affectedKeys()
@@ -55,8 +70,8 @@ service cloud.firestore {
           request.resource.data.sheikhId == mySheikhId() &&
           request.resource.data.isPublished == false;
 
-        allow update: if isAdmin();  // admin-only corrections
-        allow delete: if false;      // scores never deleted
+        allow update: if isAdmin();
+        allow delete: if false;
       }
 
       // Sessions

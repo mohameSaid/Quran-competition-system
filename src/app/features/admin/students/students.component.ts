@@ -20,6 +20,7 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
 import { Student, Sheikh, CATEGORY_LABELS, JUZ_OPTIONS, CompetitionCategory } from '../../../core/models';
+import { egyptNationalIdValidator, egyptMobileValidator } from '../../../core/validators/egypt.validators';
 
 @Component({
   selector: 'app-students',
@@ -51,7 +52,7 @@ import { Student, Sheikh, CATEGORY_LABELS, JUZ_OPTIONS, CompetitionCategory } fr
         <div class="search-box">
           <mat-icon class="search-icon">search</mat-icon>
           <input class="search-input" [(ngModel)]="searchQ" (ngModelChange)="applyFilter()"
-                 placeholder="ابحث بالاسم أو رقم الهوية...">
+                 placeholder="ابحث بالاسم أو الرقم القومي...">
         </div>
         <select class="filter-sel" [(ngModel)]="catFilter" (ngModelChange)="applyFilter()">
           <option value="">كل الفئات</option>
@@ -80,7 +81,7 @@ import { Student, Sheikh, CATEGORY_LABELS, JUZ_OPTIONS, CompetitionCategory } fr
               <tr>
                 <th>#</th>
                 <th>الاسم الكامل</th>
-                <th>رقم الهوية</th>
+                <th>الرقم القومي</th>
                 <th>جوال ولي الأمر</th>
                 <th>الشيخ</th>
                 <th>الأجزاء</th>
@@ -145,19 +146,19 @@ import { Student, Sheikh, CATEGORY_LABELS, JUZ_OPTIONS, CompetitionCategory } fr
                   }
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>رقم الهوية *</mat-label>
-                  <input matInput formControlName="nationalId" dir="ltr" maxlength="10">
+                  <mat-label>الرقم القومي *</mat-label>
+                  <input matInput formControlName="nationalId" dir="ltr" maxlength="14">
                   @if (form.get('nationalId')?.invalid && form.get('nationalId')?.touched) {
-                    <mat-error>يجب أن يبدأ بـ 1 أو 2 ويتكون من 10 أرقام</mat-error>
+                    <mat-error>يجب أن يتكون من 14 رقماً</mat-error>
                   }
                 </mat-form-field>
               </div>
               <div class="form-grid-2">
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>جوال ولي الأمر *</mat-label>
-                  <input matInput formControlName="parentPhone" dir="ltr" maxlength="10">
+                  <input matInput formControlName="parentPhone" dir="ltr" maxlength="11">
                   @if (form.get('parentPhone')?.invalid && form.get('parentPhone')?.touched) {
-                    <mat-error>يجب أن يبدأ بـ 05</mat-error>
+                    <mat-error>يجب أن يبدأ بـ 01 (11 رقماً)</mat-error>
                   }
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="full-width">
@@ -255,8 +256,8 @@ export class StudentsComponent implements OnInit {
 
   form = this.fb.group({
     fullName:    ['', [Validators.required, Validators.minLength(8)]],
-    nationalId:  ['', [Validators.required, Validators.pattern(/^[12]\d{9}$/)]],
-    parentPhone: ['', [Validators.required, Validators.pattern(/^05\d{8}$/)]],
+    nationalId:  ['', [Validators.required, egyptNationalIdValidator()]],
+    parentPhone: ['', [Validators.required, egyptMobileValidator()]],
     age:         [null as number | null, [Validators.required, Validators.min(5), Validators.max(80)]],
     sheikhId:    ['', Validators.required],
     sheikhName:  [''],
@@ -264,7 +265,10 @@ export class StudentsComponent implements OnInit {
     category:    ['', Validators.required],
   });
 
-  get compId(): string { return this.competitionSvc.active()?.id ?? 'default'; }
+  get compId(): string {
+    try { return this.competitionSvc.requireActiveCompetition(); }
+    catch { return 'default'; }
+  }
 
   ngOnInit(): void {
     this.studentSvc.getAll(this.compId).subscribe(list => {

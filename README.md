@@ -39,6 +39,35 @@ firebase: {
 
 ---
 
+## 🔒 نشر قواعد Firestore
+
+تأكد أن `.firebaserc` يشير إلى مشروعك (`quran-competition-system`) ثم:
+
+```bash
+firebase login
+firebase deploy --only firestore:rules,firestore:indexes
+```
+
+### اختبار القواعد (Firebase Console)
+
+1. افتح **Firestore → Rules → Rules Playground**
+2. جرّب المسارات التالية:
+   - `competitions/default/students/{id}` — **create** بدون مصادقة (يجب أن ينجح)
+   - `users/{uid}` — **read** بمستخدم مصادق (يجب أن ينجح)
+   - `sheikhs/{id}` — **update** بمحكّم يملك نفس `sheikhId` (حقل `totalEvaluated` فقط)
+3. اختبار حي: تسجيل متسابق عام → نجاح؛ دخول مسؤول → قراءة لوحة التحكم
+
+### أسباب شائعة لخطأ Missing or insufficient permissions
+
+| السبب | الحل |
+|-------|------|
+| القواعد غير منشورة على المشروع الصحيح | `firebase deploy --only firestore:rules` |
+| المستخدم بدون مستند `/users/{uid}` | أنشئ المستند يدوياً أو سجّل دخولاً جديداً |
+| محكّم بدون `sheikhId` في `/users/{uid}` | أضف `sheikhId` يطابق معرف الشيخ في `/sheikhs` |
+| دور `public` يحاول قراءة بيانات محمية | طبيعي — فقط admin/sheikh يقرأون الطلاب |
+
+---
+
 ## 👤 إنشاء أول مسؤول
 
 بعد التسجيل في Firebase Auth، ادخل Firestore وأضف:

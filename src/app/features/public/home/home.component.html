@@ -1,0 +1,467 @@
+<section class="kafr-hero" id="home" aria-label="قسم الترحيب الرئيسي">
+  <div class="hero-bg" id="hero-bg">
+    <img
+      src="https://images.unsplash.com/photo-1675018059810-0a96e51ba374?auto=format&fit=crop&w=1920&q=80"
+      alt="مسجد جميل في قرية مصرية محاط بالطبيعة الخضراء، سماء صافية وهواء نقي"
+      loading="eager"
+    />
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-tint"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-main">🕌 الموقع الرسمي</span>
+      <span class="hero-badge-dot"></span>
+      <span class="hero-badge-sub">قرية كفر أبو الحسن</span>
+    </div>
+
+    <h1 class="hero-h1">
+      أهلاً وسهلاً بكم في<br />
+      <span>قرية كفر أبو الحسن</span>
+    </h1>
+
+    <p class="hero-sub1">قرية عريقة في محافظة المنوفية</p>
+    <p class="hero-sub2">تجمع بين الأصالة والتراث — مركز قويسنا، جمهورية مصر العربية</p>
+
+    <div class="hero-stats">
+      <div class="text-center">
+        <div class="hero-stat-val">7,730</div>
+        <div class="hero-stat-lbl">نسمة</div>
+      </div>
+      <div class="text-center">
+        <div class="hero-stat-val">1,954</div>
+        <div class="hero-stat-lbl">أسرة</div>
+      </div>
+      <div class="text-center">
+        <div class="hero-stat-val">3</div>
+        <div class="hero-stat-lbl">دورات مسابقة</div>
+      </div>
+    </div>
+
+    <div class="hero-btns">
+      <a (click)="scrollTo('competition', $event)" href="#" class="btn-primary">
+        <span>📖</span>
+        <span>سجل في مسابقة القرآن الكريم</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </a>
+      <a (click)="scrollTo('news', $event)" href="#" class="btn-secondary">
+        <span>📰</span>
+        <span>تصفح الأخبار</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>تمرير للأسفل</span>
+    <svg class="scroll-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ===== NEWS ===== -->
+<section class="kafr-news" id="news" aria-labelledby="news-title">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-badge">
+        <span>📰</span>
+        <span>أحدث ما يدور في القرية</span>
+      </div>
+      <h2 class="section-title" id="news-title">آخر الأخبار</h2>
+      <p class="section-sub">تابع آخر المستجدات والأحداث التي تشهدها قريتنا العزيزة</p>
+    </div>
+
+    <div class="news-grid">
+      <!-- Card 1 -->
+      <div class="news-card reveal-card" style="transition-delay:0ms">
+        <div class="news-img-wrap">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1c5508df4-1773054348045.png" alt="أعمال حفر وتمديد أنابيب الصرف الصحي في أحد شوارع القرية" loading="lazy" />
+          <div class="news-img-overlay"></div>
+          <span class="news-cat cat-projects">مشاريع</span>
+        </div>
+        <div class="news-body">
+          <div class="news-date">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>10 يونيو 2026</span>
+          </div>
+          <h3 class="news-title">افتتاح مشروع تطوير شبكة الصرف الصحي</h3>
+          <p class="news-excerpt">أُعلن عن افتتاح المرحلة الأولى من مشروع تطوير وتحديث شبكة الصرف الصحي بالقرية، بتكلفة تجاوزت مليوني جنيه مصري.</p>
+          <button class="news-read-more">
+            <span>اقرأ المزيد</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="news-card reveal-card" style="transition-delay:120ms">
+        <div class="news-img-wrap">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1e3a37a89-1777066769040.png" alt="طلاب مدرسة يتسلمون مستلزمات دراسية في قاعة مدرسية" loading="lazy" />
+          <div class="news-img-overlay"></div>
+          <span class="news-cat cat-education">تعليم</span>
+        </div>
+        <div class="news-body">
+          <div class="news-date">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>5 يونيو 2026</span>
+          </div>
+          <h3 class="news-title">توزيع مستلزمات المدارس على أبناء القرية</h3>
+          <p class="news-excerpt">نظّم مجلس القرية حملة لتوزيع الأدوات والمستلزمات المدرسية على أبناء الأسر المحتاجة استعداداً للعام الدراسي الجديد.</p>
+          <button class="news-read-more">
+            <span>اقرأ المزيد</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="news-card reveal-card" style="transition-delay:240ms">
+        <div class="news-img-wrap">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_154c631e2-1764906424023.png" alt="قرآن كريم مفتوح على طاولة خشبية بإضاءة دافئة" loading="lazy" />
+          <div class="news-img-overlay"></div>
+          <span class="news-cat cat-competition">مسابقة</span>
+        </div>
+        <div class="news-body">
+          <div class="news-date">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>1 يونيو 2026</span>
+          </div>
+          <h3 class="news-title">انطلاق مسابقة القرآن الكريم السنوية الثالثة</h3>
+          <p class="news-excerpt">أطلقت القرية رسمياً باب التسجيل في الدورة الثالثة من مسابقة حفظ وتجويد القرآن الكريم بمشاركة واسعة من أبناء القرية.</p>
+          <button class="news-read-more">
+            <span>اقرأ المزيد</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FIGURES ===== -->
+<section class="kafr-figures" id="figures" aria-labelledby="figures-title">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-badge">
+        <span>⭐</span>
+        <span>أعلام القرية</span>
+      </div>
+      <h2 class="section-title" id="figures-title">شخصيات بارزة من القرية</h2>
+      <p class="section-sub">نفخر بأبناء قريتنا الذين أضاؤا الطريق وخدموا مجتمعهم بإخلاص</p>
+    </div>
+
+    <div class="figures-grid">
+      <div class="figure-card reveal-card" style="transition-delay:0ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1d7668ed1-1773081462994.png" alt="صورة شخصية لرجل دين بزي إسلامي تقليدي" loading="lazy" />
+        </div>
+        <div class="figure-name">الشيخ محمد أبو الحسن</div>
+        <span class="figure-role">عالم دين</span>
+        <p class="figure-desc">من أبرز علماء المنوفية وحفظة القرآن الكريم، أسّس مدرسة لتحفيظ القرآن خدمت مئات الطلاب.</p>
+      </div>
+
+      <div class="figure-card reveal-card" style="transition-delay:100ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1b7789841-1772146118066.png" alt="صورة شخصية لطبيب في بيئة مهنية" loading="lazy" />
+        </div>
+        <div class="figure-name">د. أحمد السيد</div>
+        <span class="figure-role">طبيب وباحث</span>
+        <p class="figure-desc">رائد في مجال الطب الوقائي وخدمة المجتمع، أسهم في تحسين الخدمات الصحية بمنطقة قويسنا.</p>
+      </div>
+
+      <div class="figure-card reveal-card" style="transition-delay:200ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1f45cccaf-1763296121464.png" alt="صورة شخصية لمهندس في موقع بناء" loading="lazy" />
+        </div>
+        <div class="figure-name">المهندس خالد عبد الرحمن</div>
+        <span class="figure-role">مهندس معماري</span>
+        <p class="figure-desc">صاحب مشاريع تطوير عديدة في المنوفية، أسهمت في تحديث البنية التحتية للقرى المجاورة.</p>
+      </div>
+
+      <div class="figure-card reveal-card" style="transition-delay:300ms">
+        <div class="figure-avatar">
+          <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1c7d0ead4-1763299484523.png" alt="صورة شخصية لمعلم في بيئة تعليمية" loading="lazy" />
+        </div>
+        <div class="figure-name">الأستاذ عمر الشريف</div>
+        <span class="figure-role">معلم ومربي</span>
+        <p class="figure-desc">أكثر من 30 عاماً في خدمة التعليم بالقرية، أثّر في أجيال متعاقبة من أبناء كفر أبو الحسن.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section class="kafr-services" id="services" aria-labelledby="services-title">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-badge">
+        <span>⚙️</span>
+        <span>ما نقدمه لأبناء القرية</span>
+      </div>
+      <h2 class="section-title" id="services-title">خدمات القرية</h2>
+      <p class="section-sub">نسعى جاهدين لتوفير أفضل الخدمات وتطوير البنية التحتية لرفع مستوى المعيشة</p>
+    </div>
+
+    <div class="services-grid">
+      <div class="service-card reveal-card" style="transition-delay:0ms">
+        <div class="service-icon">🏥</div>
+        <div class="service-title">الخدمات الصحية</div>
+        <div class="service-desc">وحدة صحية متكاملة لخدمة أبناء القرية وتقديم الرعاية الطبية الأساسية</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:80ms">
+        <div class="service-icon">📚</div>
+        <div class="service-title">التعليم</div>
+        <div class="service-desc">مدارس ابتدائية وإعدادية وثانوية توفر تعليماً متميزاً لأبناء القرية</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:160ms">
+        <div class="service-icon">🕌</div>
+        <div class="service-title">الشؤون الدينية</div>
+        <div class="service-desc">مساجد ومراكز تحفيظ القرآن الكريم لخدمة الحياة الروحية للمجتمع</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:240ms">
+        <div class="service-icon">🏗️</div>
+        <div class="service-title">مشاريع التطوير</div>
+        <div class="service-desc">مشاريع البنية التحتية والتطوير العمراني لرفع مستوى المعيشة</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:320ms">
+        <div class="service-icon">👨‍👩‍👧‍👦</div>
+        <div class="service-title">الشؤون الاجتماعية</div>
+        <div class="service-desc">دعم الأسر المحتاجة والمبادرات الاجتماعية لتعزيز التكافل المجتمعي</div>
+      </div>
+      <div class="service-card reveal-card" style="transition-delay:400ms">
+        <div class="service-icon">🌾</div>
+        <div class="service-title">الزراعة</div>
+        <div class="service-desc">دعم المزارعين وتطوير القطاع الزراعي لتعزيز الاكتفاء الذاتي</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== OBITUARIES ===== -->
+<section class="kafr-obituaries" id="obituaries" aria-labelledby="obituaries-title">
+  <div class="container">
+    <div class="section-header reveal" style="max-width:56rem;margin-left:auto;margin-right:auto;">
+      <div class="section-badge" style="background:rgba(156,163,175,.2);color:#6b7280;">
+        <span>☽</span>
+        <span>إنا لله وإنا إليه راجعون</span>
+      </div>
+      <h2 class="section-title" id="obituaries-title" style="color:var(--fg);">الوفيات</h2>
+      <p class="section-sub" style="font-size:.85rem;">نسأل الله أن يتغمد فقيدنا بواسع رحمته ويسكنه فسيح جناته</p>
+    </div>
+
+    <div class="obituaries-list">
+      <div class="obituary-card reveal-card" style="transition-delay:0ms">
+        <div class="obituary-inner">
+          <div class="obituary-icon">☽</div>
+          <div class="obituary-content">
+            <div class="obituary-header">
+              <div class="obituary-name">الحاج محمود عبد الله</div>
+              <div class="obituary-date">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>12 يونيو 2026</span>
+              </div>
+            </div>
+            <p class="obituary-desc">توفي إلى رحمة الله عن عمر ناهز 78 عاماً، بعد مسيرة حافلة بالعطاء والخدمة لأبناء قريته.</p>
+            <p class="obituary-mercy">رحمه الله وأسكنه فسيح جناته</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="obituary-card reveal-card" style="transition-delay:100ms">
+        <div class="obituary-inner">
+          <div class="obituary-icon">☽</div>
+          <div class="obituary-content">
+            <div class="obituary-header">
+              <div class="obituary-name">السيدة فاطمة حسن</div>
+              <div class="obituary-date">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>8 يونيو 2026</span>
+              </div>
+            </div>
+            <p class="obituary-desc">انتقلت إلى رحمة الله بعد مسيرة حافلة بالعطاء والتضحية، وتركت أثراً طيباً في قلوب من عرفوها.</p>
+            <p class="obituary-mercy">رحمها الله وأسكنها فسيح جناته</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="obituary-card reveal-card" style="transition-delay:200ms">
+        <div class="obituary-inner">
+          <div class="obituary-icon">☽</div>
+          <div class="obituary-content">
+            <div class="obituary-header">
+              <div class="obituary-name">الشيخ إبراهيم الصاوي</div>
+              <div class="obituary-date">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>3 يونيو 2026</span>
+              </div>
+            </div>
+            <p class="obituary-desc">فقدت القرية أحد أعلامها وحفاظ القرآن الكريم، رحمه الله وأسكنه فسيح جناته.</p>
+            <p class="obituary-mercy">رحمه الله وأسكنه فسيح جناته</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="obituary-verse reveal">
+        <p>﴿ كُلُّ نَفْسٍ ذَائِقَةُ الْمَوْتِ ثُمَّ إِلَيْنَا تُرْجَعُونَ ﴾</p>
+        <small>سورة العنكبوت — الآية 57</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPETITION ===== -->
+<section class="kafr-competition" id="competition" aria-labelledby="competition-title">
+  <div class="competition-pattern"></div>
+  <div class="competition-glow"></div>
+  <div class="competition-deco1"></div>
+  <div class="competition-deco2"></div>
+  <div class="competition-deco3"></div>
+
+  <div class="competition-inner container">
+    <div class="competition-quran-icon reveal">📖</div>
+
+    <div class="competition-badge reveal">
+      <span><span>☪️</span> {{ competition()?.name ?? 'مسابقة القرآن الكريم' }} — {{ competition()?.year ?? currentYear }}</span>
+    </div>
+
+    <h2 class="competition-title reveal" id="competition-title">{{ competition()?.name ?? 'مسابقة القرآن الكريم السنوية' }}</h2>
+
+    <p class="competition-desc reveal">
+      تنظم قرية كفر أبو الحسن مسابقتها السنوية لحفظ وتجويد القرآن الكريم، في إطار حرصها على نشر تعاليم الإسلام وتكريم حفاظ كتاب الله
+    </p>
+
+    <!-- Detail Cards -->
+    <div class="competition-cards reveal">
+      <div class="comp-card">
+        <div class="comp-card-icon">📅</div>
+        <div class="comp-card-label">موعد التسجيل</div>
+        <div class="comp-card-value">حتى {{ registrationEndLabel() }}</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-card-icon">🏆</div>
+        <div class="comp-card-label">الجوائز</div>
+        <div class="comp-card-value">{{ prizesSummary() }}</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-card-icon">📋</div>
+        <div class="comp-card-label">الفئات</div>
+        <div class="comp-card-value">{{ categoriesSummary() }}</div>
+      </div>
+    </div>
+
+    <!-- Two Column -->
+    <div class="competition-two-col">
+      <!-- Conditions -->
+      <div class="conditions-box reveal">
+        <div class="conditions-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+          شروط المشاركة
+        </div>
+        <ul class="conditions-list">
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>أن يكون المتسابق من أبناء القرية أو المقيمين فيها</span>
+          </li>
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>حفظ جزء عم كحد أدنى للمشاركة</span>
+          </li>
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>التسجيل المسبق قبل انطلاق المسابقة</span>
+          </li>
+          <li class="condition-item">
+            <span class="condition-check">✓</span>
+            <span>الالتزام بمواعيد الاختبارات المحددة</span>
+          </li>
+          <!-- Age Conditions -->
+          <li class="condition-item" style="flex-direction:column;align-items:flex-start;gap:.6rem;">
+            <div style="display:flex;align-items:flex-start;gap:.75rem;width:100%;">
+              <span class="condition-check" style="margin-top:.1rem;">✓</span>
+              <div style="flex:1;">
+                <div class="age-conditions-title">شروط السن حسب المستوى:</div>
+                <ul class="age-conditions-list">
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>القرآن كاملاً:</strong> ألا يزيد السن عن 23 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>20 جزءاً:</strong> ألا يزيد السن عن 18 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>15 جزءاً:</strong> ألا يزيد السن عن 16 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>10 أجزاء:</strong> ألا يزيد السن عن 14 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>7 أجزاء:</strong> ألا يزيد السن عن 13 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>5 أجزاء:</strong> ألا يزيد السن عن 12 سنة</span>
+                  </li>
+                  <li class="age-condition-item">
+                    <span class="age-diamond">🔹</span>
+                    <span><strong>3 أجزاء:</strong> ألا يزيد السن عن 10 سنوات</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- CTA Panel -->
+      <div class="cta-panel reveal">
+        @if (competition()?.registrationOpen !== false) {
+          <div class="urgency-badge">
+            <span class="urgency-dot"></span>
+            <span class="urgency-text">التسجيل مفتوح — لا تفوّت الفرصة!</span>
+          </div>
+        } @else {
+          <div class="urgency-badge" style="background:rgba(107,114,128,.2);border-color:rgba(156,163,175,.3)">
+            <span class="urgency-text" style="color:#d1d5db">التسجيل مغلق حالياً</span>
+          </div>
+        }
+
+        <p class="cta-sub">سارع بالتسجيل قبل إغلاق باب المشاركة في {{ registrationEndLabel() }}</p>
+
+        @if (competition()?.registrationOpen !== false) {
+          <a routerLink="/register" class="btn-cta-main" aria-label="سجل الآن في مسابقة القرآن الكريم">
+            <span>🏆</span>
+            <span>سجل الآن في المسابقة</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </a>
+        } @else {
+          <span class="btn-cta-main" style="opacity:.55;pointer-events:none;cursor:not-allowed" aria-disabled="true">
+            <span>🏆</span>
+            <span>التسجيل مغلق</span>
+          </span>
+        }
+
+        <p class="cta-note">التسجيل مجاني — للاستفسار تواصل مع إدارة القرية</p>
+
+        <div class="cta-mini-stats">
+          <div class="text-center">
+            <div class="mini-stat-val">200+</div>
+            <div class="mini-stat-lbl">متسابق سابق</div>
+          </div>
+          <div class="text-center">
+            <div class="mini-stat-val">3</div>
+            <div class="mini-stat-lbl">دورات ناجحة</div>
+          </div>
+          <div class="text-center">
+            <div class="mini-stat-val">100%</div>
+            <div class="mini-stat-lbl">مجاني</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

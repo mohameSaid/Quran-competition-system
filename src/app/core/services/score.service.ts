@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import {
   Firestore, collection, collectionData, doc,
-  addDoc, updateDoc, query, where, orderBy, serverTimestamp
+  addDoc, updateDoc, query, where, orderBy, serverTimestamp, getDocs, writeBatch,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Score, ScoreBreakdown, SCORE_MAX } from '../models';
 import { AuditService } from './audit.service';
 import { StudentService } from './student.service';
 import { SheikhService } from './sheikh.service';
+import { CompetitionService } from './competition.service';
 
 @Injectable({ providedIn: 'root' })
 export class ScoreService {
@@ -15,14 +16,16 @@ export class ScoreService {
   private audit        = inject(AuditService);
   private studentSvc   = inject(StudentService);
   private sheikhSvc    = inject(SheikhService);
+  private competitionSvc = inject(CompetitionService);
 
   private col(compId: string) {
     return collection(this.fs, `competitions/${compId}/scores`);
   }
 
-  getAll(compId: string): Observable<Score[]> {
+  getAll(compId?: string): Observable<Score[]> {
+    const id = compId ?? this.competitionSvc.requireActiveCompetition();
     return collectionData(
-      query(this.col(compId), orderBy('total', 'desc')),
+      query(this.col(id), orderBy('total', 'desc')),
       { idField: 'id' }
     ) as Observable<Score[]>;
   }
@@ -65,7 +68,6 @@ export class ScoreService {
   ): Promise<void> {
     const total = this.calcTotal(breakdown);
 
-    // Validate breakdown doesn't exceed max
     if (breakdown.hifz    > SCORE_MAX.hifz    ||
         breakdown.tajweed > SCORE_MAX.tajweed  ||
         breakdown.ada     > SCORE_MAX.ada      ||
@@ -81,16 +83,19 @@ export class ScoreService {
       submittedBy,
     });
 
-    // Side-effects
     await this.studentSvc.updateStatus(compId, studentId, 'evaluated');
     await this.sheikhSvc.incrementEvaluated(sheikhId);
     this.audit.log('score.submit', studentId, 'score', { total });
   }
 
   async publishAll(compId: string): Promise<void> {
-    // In production: Cloud Function is safer for batch writes
-    // Here we update the competition flag
-    await updateDoc(doc(this.fs, `competitions/${compId}`), { resultsPublished: true });
+    const scoresSnap = await getDocs(this.col(compId));
+    const batch = writeBatch(this.fs);
+    scoresSnap.docs.forEach(d => {
+      batch.update(d.ref, { isPublished: true });
+    });
+    batch.update(doc(this.fs, `competitions/${compId}`), { resultsPublished: true });
+    await batch.commit();
     this.audit.log('results.publish', compId, 'competition');
   }
 }

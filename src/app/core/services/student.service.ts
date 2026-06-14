@@ -2,11 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import {
   Firestore, collection, collectionData, doc, docData,
   addDoc, updateDoc, deleteDoc, query, where,
-  orderBy, serverTimestamp
+  orderBy, serverTimestamp, getDocs,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { Student, StudentStatus, CompetitionCategory } from '../models';
+import { Student, StudentStatus } from '../models';
 import { AuditService } from './audit.service';
+import { CompetitionService } from './competition.service';
 
 export type StudentCreate = Omit<Student, 'id' | 'status' | 'competitionId' | 'createdAt' | 'updatedAt'>;
 
@@ -14,14 +15,20 @@ export type StudentCreate = Omit<Student, 'id' | 'status' | 'competitionId' | 'c
 export class StudentService {
   private fs    = inject(Firestore);
   private audit = inject(AuditService);
+  private competitionSvc = inject(CompetitionService);
 
   private col(compId: string) {
     return collection(this.fs, `competitions/${compId}/students`);
   }
 
-  getAll(compId: string): Observable<Student[]> {
+  compId(explicit?: string): string {
+    return explicit ?? this.competitionSvc.requireActiveCompetition();
+  }
+
+  getAll(compId?: string): Observable<Student[]> {
+    const id = this.compId(compId);
     return collectionData(
-      query(this.col(compId), orderBy('createdAt', 'desc')),
+      query(this.col(id), orderBy('createdAt', 'desc')),
       { idField: 'id' }
     ) as Observable<Student[]>;
   }
@@ -47,7 +54,16 @@ export class StudentService {
     ) as Observable<Student | undefined>;
   }
 
+  async assertUniqueNationalId(compId: string, nationalId: string, excludeId?: string): Promise<void> {
+    const snap = await getDocs(
+      query(this.col(compId), where('nationalId', '==', nationalId.trim())),
+    );
+    const dup = snap.docs.find(d => d.id !== excludeId);
+    if (dup) throw new Error('الرقم القومي مسجّل مسبقاً في المسابقة');
+  }
+
   async add(compId: string, data: StudentCreate, registeredBy: string): Promise<string> {
+    await this.assertUniqueNationalId(compId, data.nationalId);
     const ref = await addDoc(this.col(compId), {
       ...data,
       competitionId: compId,
@@ -61,6 +77,9 @@ export class StudentService {
   }
 
   async update(compId: string, studentId: string, data: Partial<Student>): Promise<void> {
+    if (data.nationalId) {
+      await this.assertUniqueNationalId(compId, data.nationalId, studentId);
+    }
     await updateDoc(
       doc(this.fs, `competitions/${compId}/students/${studentId}`),
       { ...data, updatedAt: serverTimestamp() }

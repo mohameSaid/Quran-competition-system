@@ -209,7 +209,10 @@ export class ScoringComponent implements OnInit {
     return 'var(--red)';
   }
 
-  get compId() { return this.competitionSvc.active()?.id ?? 'default'; }
+  get compId() {
+    try { return this.competitionSvc.requireActiveCompetition(); }
+    catch { return 'default'; }
+  }
 
   ngOnInit(): void {
     if (!this.studentId) { this.loading.set(false); return; }

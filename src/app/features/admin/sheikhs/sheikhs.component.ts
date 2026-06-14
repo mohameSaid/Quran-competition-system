@@ -13,6 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SheikhService } from '../../../core/services/sheikh.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { egyptMobileValidator } from '../../../core/validators/egypt.validators';
 import { Sheikh, CompetitionCategory, CATEGORY_LABELS } from '../../../core/models';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -110,9 +111,9 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>رقم الجوال *</mat-label>
-                <input matInput formControlName="phone" dir="ltr" placeholder="05xxxxxxxx">
+                <input matInput formControlName="phone" dir="ltr" placeholder="01XXXXXXXXX" maxlength="11">
                 @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
-                  <mat-error>رقم الجوال غير صحيح</mat-error>
+                  <mat-error>رقم الجوال يجب أن يبدأ بـ 01 (11 رقماً)</mat-error>
                 }
               </mat-form-field>
 
@@ -184,7 +185,7 @@ export class SheikhsComponent implements OnInit {
 
   form = this.fb.group({
     name:       ['', [Validators.required, Validators.minLength(4)]],
-    phone:      ['', [Validators.required, Validators.pattern(/^05\d{8}$/)]],
+    phone:      ['', [Validators.required, egyptMobileValidator()]],
     categories: [[] as CompetitionCategory[], [Validators.required, Validators.minLength(1)]],
   });
 

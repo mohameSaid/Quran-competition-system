@@ -133,7 +133,10 @@ export class ResultsComponent implements OnInit {
   isPublished = signal(false);
   publishedAt = signal('');
 
-  get compId() { return this.competitionSvc.active()?.id ?? 'default'; }
+  get compId() {
+    try { return this.competitionSvc.requireActiveCompetition(); }
+    catch { return 'default'; }
+  }
 
   ngOnInit(): void {
     this.scoreSvc.getAll(this.compId).subscribe(list => {

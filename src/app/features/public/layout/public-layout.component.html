@@ -1,0 +1,128 @@
+<nav class="kafr-navbar" [class.scrolled]="scrolled()">
+  <div class="container">
+    <div class="nav-inner">
+      <a (click)="scrollTo('home', $event)" href="#" class="nav-logo" aria-label="الصفحة الرئيسية">
+        <div class="nav-logo-icon">🕌</div>
+        <div class="nav-logo-text">
+          <div class="nav-logo-name">قرية كفر أبو الحسن</div>
+          <div class="nav-logo-sub">مركز قويسنا — المنوفية</div>
+        </div>
+      </a>
+
+      <div class="nav-links">
+        <a (click)="scrollTo('home', $event)" href="#">الرئيسية</a>
+        <a (click)="scrollTo('news', $event)" href="#">الأخبار</a>
+        <a (click)="scrollTo('figures', $event)" href="#">الشخصيات</a>
+        <a (click)="scrollTo('services', $event)" href="#">الخدمات</a>
+        <a (click)="scrollTo('obituaries', $event)" href="#">الوفيات</a>
+        <a (click)="scrollTo('competition', $event)" href="#">المسابقة</a>
+      </div>
+
+      <div class="nav-actions">
+        <a routerLink="/register" class="nav-cta">
+          <span>🏆</span>
+          <span>سجل في المسابقة</span>
+        </a>
+        <a routerLink="/login" class="nav-login">دخول المشرفين</a>
+        <button
+          type="button"
+          class="hamburger"
+          [class.open]="menuOpen()"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="menuOpen()"
+          aria-label="فتح القائمة">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kafr-mobile-menu" [class.open]="menuOpen()">
+    <div class="mobile-menu-inner">
+      <a (click)="scrollTo('home', $event)" href="#" class="mobile-link">الرئيسية</a>
+      <a (click)="scrollTo('news', $event)" href="#" class="mobile-link">الأخبار</a>
+      <a (click)="scrollTo('figures', $event)" href="#" class="mobile-link">الشخصيات</a>
+      <a (click)="scrollTo('services', $event)" href="#" class="mobile-link">الخدمات</a>
+      <a (click)="scrollTo('obituaries', $event)" href="#" class="mobile-link">الوفيات</a>
+      <a (click)="scrollTo('competition', $event)" href="#" class="mobile-link">المسابقة</a>
+      <a routerLink="/register" class="mobile-cta-link mobile-link" (click)="closeMenu()">
+        <span>🏆</span>
+        <span>سجل في المسابقة</span>
+      </a>
+      <a routerLink="/login" class="mobile-link" (click)="closeMenu()">دخول المشرفين</a>
+    </div>
+  </div>
+</nav>
+
+<main class="kafr-main">
+  <router-outlet />
+</main>
+
+<footer aria-label="تذييل الصفحة">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <div class="footer-logo-icon">🕌</div>
+          <div>
+            <div class="footer-logo-name">قرية كفر أبو الحسن</div>
+            <div class="footer-logo-sub">الموقع الرسمي</div>
+          </div>
+        </div>
+        <p class="footer-about">
+          قرية كفر أبو الحسن — إحدى قرى مركز قويسنا، محافظة المنوفية، جمهورية مصر العربية.
+        </p>
+      </div>
+
+      <div>
+        <div class="footer-col-title">
+          <span class="footer-col-title-bar"></span>
+          روابط سريعة
+        </div>
+        <ul class="footer-links">
+          <li><a (click)="scrollTo('home', $event)" href="#" class="footer-link">الرئيسية</a></li>
+          <li><a (click)="scrollTo('competition', $event)" href="#" class="footer-link">المسابقة</a></li>
+          <li><a routerLink="/register" class="footer-link">التسجيل</a></li>
+          <li><a routerLink="/login" class="footer-link">دخول المشرفين</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">
+          <span class="footer-col-title-bar"></span>
+          تواصل معنا
+        </div>
+        <ul class="footer-contact-list">
+          <li class="footer-contact-item">
+            <div class="footer-contact-icon">📍</div>
+            <div>
+              <div class="footer-contact-label">العنوان</div>
+              <div class="footer-contact-val">كفر أبو الحسن، قويسنا، المنوفية</div>
+            </div>
+          </li>
+          <li class="footer-contact-item">
+            <div class="footer-contact-icon">📞</div>
+            <div>
+              <div class="footer-contact-label">الهاتف</div>
+              <div class="footer-contact-val"><a href="tel:+20481234567">048-123-4567</a></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">© {{ year }} قرية كفر أبو الحسن — نظام مسابقة القرآن الكريم</p>
+    </div>
+  </div>
+</footer>
+
+@if (showStickyCta()) {
+  <div class="kafr-sticky-cta">
+    <a routerLink="/register">
+      <span>🏆</span>
+      <span>سجل الآن في مسابقة القرآن الكريم</span>
+    </a>
+  </div>
+  <div class="mobile-pad"></div>
+}

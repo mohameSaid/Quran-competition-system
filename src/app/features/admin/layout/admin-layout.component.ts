@@ -74,8 +74,8 @@ const NAV = [
     }
     .admin-shell.collapsed .sidebar { width:60px; }
     .sidebar__logo { display:flex;align-items:center;gap:10px;padding:16px 14px;border-bottom:1px solid var(--border-primary);
-      span{font-size:14px;font-weight:700;color:var(--gold-light);white-space:nowrap;overflow:hidden;}
-      .logo-mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+      span{font-size:14px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;}
+      .logo-mark{width:34px;height:34px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
     }
     .sidebar__nav { flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:3px;overflow-y:auto; }
     .nav-link {
@@ -83,8 +83,8 @@ const NAV = [
       color:var(--text-secondary);text-decoration:none;cursor:pointer;border:none;background:none;width:100%;transition:all .18s;
       mat-icon{flex-shrink:0;font-size:20px;width:20px;height:20px;}
       span{white-space:nowrap;overflow:hidden;}
-      &.active{background:rgba(212,168,67,.14);color:var(--gold-light);font-weight:600;}
-      &:hover:not(.active){background:var(--bg-tertiary);color:var(--text-primary);}
+      &.active{background:var(--secondary);color:var(--primary);font-weight:600;}
+      &:hover:not(.active){background:var(--muted);color:var(--fg);}
       &--logout{color:var(--red)!important;&:hover{background:rgba(232,85,85,.1)!important;}}
     }
     .sidebar__footer { padding:10px 8px;border-top:1px solid var(--border-primary); }

@@ -14,6 +14,10 @@ import { StudentService } from "../../../core/services/student.service";
 import { CompetitionService } from "../../../core/services/competition.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
+import {
+  egyptNationalIdValidator,
+  egyptMobileValidator,
+} from "../../../core/validators/egypt.validators";
 
 @Component({
   selector: "app-register",
@@ -36,7 +40,14 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
         <p>أكمل جميع الحقول المطلوبة للتسجيل في المسابقة</p>
       </div>
 
-      @if (success()) {
+      @if (registrationClosed()) {
+        <div class="closed-card">
+          <mat-icon>event_busy</mat-icon>
+          <h3>التسجيل مغلق حالياً</h3>
+          <p>لم يُفتح باب التسجيل في المسابقة بعد، أو انتهت فترة التسجيل.</p>
+          <a routerLink="/" mat-flat-button class="btn-gold">العودة للرئيسية</a>
+        </div>
+      } @else if (success()) {
         <div class="success-card">
           <div style="font-size:60px;margin-bottom:16px">🎉</div>
           <h3>تم التسجيل بنجاح!</h3>
@@ -74,19 +85,16 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>رقم الهوية الوطنية *</mat-label>
+              <mat-label>الرقم القومي *</mat-label>
               <input
                 matInput
                 formControlName="nationalId"
                 dir="ltr"
-                placeholder="1xxxxxxxxx"
-                maxlength="10"
+                placeholder="01XXXXXXXXXXXXX"
+                maxlength="14"
               />
               @if (f["nationalId"].invalid && f["nationalId"].touched) {
-                <mat-error
-                  >رقم الهوية يجب أن يبدأ بـ 1 أو 2 ويتكون من 10
-                  أرقام</mat-error
-                >
+                <mat-error>الرقم القومي يجب أن يتكون من 14 رقماً</mat-error>
               }
             </mat-form-field>
           </div>
@@ -98,11 +106,11 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
                 matInput
                 formControlName="parentPhone"
                 dir="ltr"
-                placeholder="05xxxxxxxx"
-                maxlength="10"
+                placeholder="01XXXXXXXXX"
+                maxlength="11"
               />
               @if (f["parentPhone"].invalid && f["parentPhone"].touched) {
-                <mat-error>رقم الجوال يجب أن يبدأ بـ 05</mat-error>
+                <mat-error>رقم الجوال يجب أن يبدأ بـ 01 (11 رقماً)</mat-error>
               }
             </mat-form-field>
 
@@ -123,8 +131,7 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
           </div>
 
           <div class="form-grid-2">
-            <!-- Sheikh from Firestore -->
-            <!-- <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>اسم الشيخ المشرف *</mat-label>
               <mat-select formControlName="sheikhId" (selectionChange)="onSheikhChange($event.value)">
                 @if (sheikhsLoading()) {
@@ -140,7 +147,7 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
               @if (f['sheikhId'].invalid && f['sheikhId'].touched) {
                 <mat-error>يرجى اختيار الشيخ</mat-error>
               }
-            </mat-form-field> -->
+            </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>عدد الأجزاء المحفوظة *</mat-label>
@@ -204,7 +211,7 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
   styles: [
     `
       .reg-page {
-        padding: 32px 0;
+        padding: 6rem 1rem 3rem;
         max-width: 660px;
         margin: 0 auto;
       }
@@ -214,19 +221,20 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
         h2 {
           font-size: 22px;
           font-weight: 700;
-          color: var(--gold-light);
+          color: var(--primary);
           margin-bottom: 6px;
         }
         p {
           font-size: 13px;
-          color: var(--text-muted);
+          color: var(--muted-fg);
         }
       }
       .reg-form {
-        background: var(--bg-card);
-        border: 1px solid var(--border-primary);
-        border-radius: var(--r-lg);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
         padding: 28px;
+        box-shadow: var(--shadow-sm);
       }
       .error-box {
         display: flex;
@@ -249,28 +257,39 @@ import { CATEGORY_LABELS, JUZ_OPTIONS } from "../../../core/models";
         gap: 8px;
       }
       .success-card {
-        background: var(--bg-card);
-        border: 1px solid rgba(45, 212, 160, 0.3);
-        border-radius: var(--r-lg);
+        background: var(--card);
+        border: 1px solid rgba(46, 125, 50, 0.3);
+        border-radius: var(--radius-lg);
         padding: 48px 28px;
         text-align: center;
+        box-shadow: var(--shadow-sm);
         h3 {
           font-size: 22px;
           font-weight: 700;
-          color: var(--green);
+          color: var(--primary);
           margin-bottom: 8px;
         }
         p {
           font-size: 14px;
-          color: var(--text-muted);
+          color: var(--muted-fg);
         }
         .reg-num {
           margin-top: 12px;
           font-size: 15px;
           strong {
-            color: var(--gold-light);
+            color: var(--accent);
           }
         }
+      }
+      .closed-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 48px 28px;
+        text-align: center;
+        mat-icon { font-size: 48px; width: 48px; height: 48px; color: var(--muted-fg); margin-bottom: 12px; }
+        h3 { font-size: 20px; color: var(--primary); margin-bottom: 8px; }
+        p { color: var(--muted-fg); margin-bottom: 20px; }
       }
     `,
   ],
@@ -284,14 +303,14 @@ export class RegisterComponent implements OnInit {
 
   form = this.fb.group({
     fullName: ["", [Validators.required, Validators.minLength(8)]],
-    nationalId: ["", [Validators.required, Validators.pattern(/^[12]\d{9}$/)]],
-    parentPhone: ["", [Validators.required, Validators.pattern(/^05\d{8}$/)]],
+    nationalId: ["", [Validators.required, egyptNationalIdValidator()]],
+    parentPhone: ["", [Validators.required, egyptMobileValidator()]],
     age: [
       null as number | null,
       [Validators.required, Validators.min(5), Validators.max(80)],
     ],
-    sheikhId: [""],
-    sheikhName: [""], // set programmatically
+    sheikhId: ["", Validators.required],
+    sheikhName: [""],
     juzCount: [null as number | null, Validators.required],
     category: ["", Validators.required],
   });
@@ -315,6 +334,11 @@ export class RegisterComponent implements OnInit {
   regNumber = signal("");
   error = signal("");
 
+  registrationClosed = () => {
+    const c = this.competitionSvc.active();
+    return c != null && c.registrationOpen === false;
+  };
+
   ngOnInit(): void {
     this.sheikhSvc.getActive().subscribe((list) => {
       this.sheikhs.set(list);
@@ -337,6 +361,10 @@ export class RegisterComponent implements OnInit {
   }
 
   async submit(): Promise<void> {
+    if (this.registrationClosed()) {
+      this.error.set("التسجيل مغلق حالياً");
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -344,7 +372,7 @@ export class RegisterComponent implements OnInit {
     this.loading.set(true);
     this.error.set("");
     try {
-      const compId = this.competitionSvc.active()?.id ?? "default";
+      const compId = this.competitionSvc.requireActiveCompetition();
       const {
         fullName,
         nationalId,

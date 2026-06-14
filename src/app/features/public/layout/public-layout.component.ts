@@ -1,39 +1,53 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
+import { Component, HostListener, signal } from '@angular/core';
+import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-public-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, MatButtonModule],
-  template: `
-    <div class="pub-shell">
-      <header class="pub-header">
-        <div class="pub-header__inner">
-          <div class="pub-logo">
-            <span class="pub-logo__icon">📖</span>
-            <span>مسابقة القرآن الكريم</span>
-          </div>
-          <a routerLink="/login" mat-stroked-button style="font-family:Cairo,sans-serif;font-size:13px">
-            دخول المشرفين
-          </a>
-        </div>
-      </header>
-      <main class="pub-main"><router-outlet /></main>
-      <footer class="pub-footer">نظام مسابقة القرآن الكريم © {{ year }}</footer>
-    </div>
-  `,
-  styles: [`
-    .pub-shell  { display:flex;flex-direction:column;min-height:100vh; }
-    .pub-header { background:var(--bg-secondary);border-bottom:1px solid var(--border-primary);position:sticky;top:0;z-index:50; }
-    .pub-header__inner { max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 24px; }
-    .pub-logo   { display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:var(--gold-light);
-      &__icon { width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-size:16px; }
-    }
-    .pub-main   { flex:1;max-width:900px;width:100%;margin:0 auto;padding:0 24px; }
-    .pub-footer { text-align:center;padding:18px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border-primary); }
-  `]
+  imports: [RouterOutlet, RouterLink],
+  templateUrl: './public-layout.component.html',
 })
 export class PublicLayoutComponent {
-  year = new Date().getFullYear();
+  readonly scrolled = signal(false);
+  readonly menuOpen = signal(false);
+  readonly showStickyCta = signal(true);
+  readonly year = new Date().getFullYear();
+
+  constructor(private router: Router) {
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      takeUntilDestroyed(),
+    ).subscribe(() => {
+      this.menuOpen.set(false);
+      this.showStickyCta.set(this.router.url === '/' || this.router.url === '');
+    });
+    this.showStickyCta.set(this.router.url === '/' || this.router.url === '');
+  }
+
+  @HostListener('window:scroll')
+  onScroll(): void {
+    this.scrolled.set(window.scrollY > 50);
+  }
+
+  toggleMenu(): void {
+    this.menuOpen.update(v => !v);
+  }
+
+  closeMenu(): void {
+    this.menuOpen.set(false);
+  }
+
+  scrollTo(id: string, event: Event): void {
+    event.preventDefault();
+    this.closeMenu();
+    if (this.router.url !== '/' && this.router.url !== '') {
+      void this.router.navigate(['/']).then(() => {
+        setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 100);
+      });
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }

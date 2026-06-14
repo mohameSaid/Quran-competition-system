@@ -121,7 +121,10 @@ export class ReportsComponent implements OnInit {
     { id:4, icon:'📋', title:'سجل العمليات',            desc:'Audit log كامل', tags:[{label:'Excel',color:'green'}] },
   ];
 
-  get compId() { return this.competitionSvc.active()?.id ?? 'default'; }
+  get compId() {
+    try { return this.competitionSvc.requireActiveCompetition(); }
+    catch { return 'default'; }
+  }
 
   ngOnInit(): void {
     this.auditSvc.getRecent(50).subscribe(l => { this.auditLogs.set(l); this.auditLoading.set(false); });

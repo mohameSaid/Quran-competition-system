@@ -1,32 +1,27 @@
-// Angular Material 19 — new M3 theming API (no more define-dark-theme)
 @use "@angular/material" as mat;
 
-// 1. Include core styles once
 @include mat.core();
 
-// 2. Define the theme using mat.theme() — the new Angular 19 API
-//    No more mat.define-palette / mat.define-dark-theme
-// $qc-theme: mat.define-theme((
-//   color: (
-//     theme-type: dark,
-//     // primary:    mat.$amber-palette,
-//     // tertiary:   mat.$teal-palette
-//   ),
-//   typography: (
-//     brand-family:  'Cairo, sans-serif',
-//     plain-family:  'Cairo, sans-serif',
-//     bold-weight:   700,
-//     medium-weight: 500,
-//     regular-weight: 400
-//   ),
-//   density: (scale: 0)
-// ));
+$qc-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$green-palette,
+    tertiary: mat.$orange-palette,
+  ),
+  typography: (
+    brand-family: 'Cairo, sans-serif',
+    plain-family: 'Cairo, sans-serif',
+    bold-weight: 700,
+    medium-weight: 500,
+    regular-weight: 400,
+  ),
+  density: (scale: 0),
+));
 
-// 3. Apply to :root
 :root {
-  // @include mat.all-component-themes($qc-theme);
+  @include mat.all-component-themes($qc-theme);
 }
 
-// 4. Import partials (no @use inside partials — they are plain CSS)
 @import "variables";
 @import "global";
+@import "kafr-public";

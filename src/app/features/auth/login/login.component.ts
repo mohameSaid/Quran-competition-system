@@ -65,17 +65,18 @@ import { AuthService } from '../../../core/services/auth.service';
   styles: [`
     .login-page {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: var(--bg-primary); background-image: radial-gradient(ellipse at 50% 0%,rgba(212,168,67,.08) 0%,transparent 60%);
+      background: var(--secondary);
       padding: 20px;
     }
     .login-card {
-      background: var(--bg-card); border: 1px solid var(--border-accent);
-      border-radius: var(--r-xl); padding: 40px; width: 100%; max-width: 420px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 40px; width: 100%; max-width: 420px;
+      box-shadow: var(--shadow-md);
     }
     .brand { text-align: center; margin-bottom: 28px;
-      &__icon { width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px; }
-      h1 { font-size:17px;font-weight:700;color:var(--gold-light);margin-bottom:5px; }
-      p  { font-size:13px;color:var(--text-muted); }
+      &__icon { width:60px;height:60px;border-radius:14px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;color:#fff; }
+      h1 { font-size:17px;font-weight:700;color:var(--primary);margin-bottom:5px; }
+      p  { font-size:13px;color:var(--muted-fg); }
     }
     .error-box { display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(232,85,85,.12);border:1px solid rgba(232,85,85,.3);border-radius:var(--r-sm);color:var(--red);font-size:13px;margin-bottom:14px; }
     .full-width  { width:100%; }

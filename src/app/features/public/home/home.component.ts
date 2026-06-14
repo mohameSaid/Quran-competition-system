@@ -1,66 +1,83 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  inject,
+  AfterViewInit,
+  OnDestroy,
+  computed,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { CompetitionService } from '../../../core/services/competition.service';
+import { CATEGORY_LABELS, CompetitionCategory } from '../../../core/models';
+import { formatEgyptDate } from '../../../core/validators/egypt.validators';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatIconModule],
-  template: `
-    <div class="home">
-      <div class="hero">
-        <div class="hero__icon">🕌</div>
-        <h1 class="hero__title">مسابقة القرآن الكريم</h1>
-        <p class="hero__sub">
-          مسابقة في التلاوة والحفظ — سجّل الآن وانضم إلى المتسابقين
-        </p>
-        <a routerLink="/register" mat-flat-button class="btn-gold hero__cta">
-          <mat-icon>person_add</mat-icon>
-          تسجيل متسابق جديد
-        </a>
-      </div>
-
-      <div class="info-cards">
-        <div class="info-card">
-          <div class="info-card__icon">👑</div>
-          <div class="info-card__title">الحفظ الكامل</div>
-          <div class="info-card__desc">30 جزءاً — جائزة 5,000 ريال</div>
-        </div>
-        <div class="info-card">
-          <div class="info-card__icon">📗</div>
-          <div class="info-card__title">15 جزءاً</div>
-          <div class="info-card__desc">جائزة 3,000 ريال</div>
-        </div>
-        <div class="info-card">
-          <div class="info-card__icon">📘</div>
-          <div class="info-card__title">10 أجزاء</div>
-          <div class="info-card__desc">جائزة 2,000 ريال</div>
-        </div>
-        <div class="info-card">
-          <div class="info-card__icon">📙</div>
-          <div class="info-card__title">5 أجزاء</div>
-          <div class="info-card__desc">جائزة 1,500 ريال</div>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .home { padding: 48px 0; }
-    .hero { text-align:center; margin-bottom:48px;
-      &__icon  { font-size:64px; margin-bottom:16px; }
-      &__title { font-family:'Amiri',serif; font-size:38px; font-weight:700; color:var(--gold-light); margin-bottom:12px; }
-      &__sub   { font-size:15px; color:var(--text-secondary); max-width:480px; margin:0 auto 28px; line-height:1.7; }
-      &__cta   { height:50px; font-size:15px; padding:0 36px; display:inline-flex; align-items:center; gap:8px; }
-    }
-    .info-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
-    .info-card  { background:var(--bg-card); border:1px solid var(--border-primary); border-radius:var(--r-md); padding:20px; text-align:center; transition:all .2s;
-      &:hover { border-color:rgba(212,168,67,.35); transform:translateY(-2px); }
-      &__icon  { font-size:32px; margin-bottom:10px; }
-      &__title { font-size:15px; font-weight:700; margin-bottom:5px; }
-      &__desc  { font-size:12px; color:var(--text-muted); }
-    }
-    @media(max-width:600px) { .hero__title { font-size:26px; } }
-  `]
+  imports: [RouterLink],
+  templateUrl: './home.component.html',
 })
-export class HomeComponent {}
+export class HomeComponent implements AfterViewInit, OnDestroy {
+  private competitionSvc = inject(CompetitionService);
+  private observer?: IntersectionObserver;
+
+  readonly competition = this.competitionSvc.active;
+  readonly currentYear = new Date().getFullYear();
+
+  readonly registrationEndLabel = computed(() => {
+    const c = this.competition();
+    return c?.registrationEnd ? formatEgyptDate(c.registrationEnd) : '—';
+  });
+
+  readonly prizesSummary = computed(() => {
+    const prizes = this.competition()?.prizes;
+    if (!prizes) return 'جوائز قيمة لجميع الفئات';
+    const vals = Object.values(prizes).filter(v => v > 0);
+    if (!vals.length) return 'جوائز قيمة لجميع الفئات';
+    const max = Math.max(...vals);
+    return `حتى ${max.toLocaleString('ar-EG')} جنيه`;
+  });
+
+  readonly categoriesSummary = computed(() => {
+    const keys = Object.keys(CATEGORY_LABELS) as CompetitionCategory[];
+    return keys.map(k => CATEGORY_LABELS[k].replace(/\s*\(.*\)/, '')).join(' | ');
+  });
+
+  ngAfterViewInit(): void {
+    this.observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            this.observer?.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -60px 0px' },
+    );
+    document.querySelectorAll('.reveal, .reveal-card').forEach(el => {
+      this.observer?.observe(el);
+    });
+
+    const heroBg = document.getElementById('hero-bg');
+    if (heroBg) {
+      window.addEventListener('scroll', this.onParallax, { passive: true });
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+    window.removeEventListener('scroll', this.onParallax);
+  }
+
+  private onParallax = (): void => {
+    const heroBg = document.getElementById('hero-bg');
+    if (heroBg) {
+      heroBg.style.transform = `translateY(${window.scrollY * 0.35}px)`;
+    }
+  };
+
+  scrollTo(id: string, event: Event): void {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}

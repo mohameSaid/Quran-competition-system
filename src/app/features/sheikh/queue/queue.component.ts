@@ -153,7 +153,10 @@ export class QueueComponent implements OnInit {
   done()    { return this.students().filter(s => s.status === 'evaluated' || s.status === 'published'); }
   calledStudent() { return this.students().find(s => s.id === this.calledId()) ?? null; }
 
-  get compId() { return this.competitionSvc.active()?.id ?? 'default'; }
+  get compId() {
+    try { return this.competitionSvc.requireActiveCompetition(); }
+    catch { return 'default'; }
+  }
 
   ngOnInit(): void {
     const sheikhId = this.auth.currentUser()?.sheikhId ?? '';

@@ -151,7 +151,10 @@ export class DashboardComponent implements OnInit {
   pending      = signal(0);
   evaluatedPct = signal(0);
 
-  get compId() { return this.competitionSvc.active()?.id ?? 'default'; }
+  get compId() {
+    try { return this.competitionSvc.requireActiveCompetition(); }
+    catch { return 'default'; }
+  }
 
   ngOnInit(): void {
     this.studentSvc.getAll(this.compId).subscribe(list => {

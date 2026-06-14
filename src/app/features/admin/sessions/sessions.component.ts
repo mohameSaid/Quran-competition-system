@@ -260,7 +260,10 @@ export class SessionsComponent implements OnInit {
     capacity:  [10, [Validators.required, Validators.min(1)]],
   });
 
-  get compId() { return this.competitionSvc.active()?.id ?? 'default'; }
+  get compId() {
+    try { return this.competitionSvc.requireActiveCompetition(); }
+    catch { return 'default'; }
+  }
 
   ngOnInit(): void {
     this.sessionSvc.getAll(this.compId).subscribe(list => {

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {
   Firestore, collection, addDoc, serverTimestamp,
-  query, orderBy, limit, collectionData
+  query, orderBy, limit, collectionData, getDocs, where,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { AuditLog } from '../models';
@@ -13,13 +13,14 @@ export class AuditService {
   private auth = inject(Auth);
   private col  = collection(this.fs, 'auditLogs');
 
-  /** Fire-and-forget — never throws, never breaks caller */
+  /** Fire-and-forget — skips when unauthenticated (public registration) */
   log(action: string, targetId?: string, targetType?: string, meta?: Record<string, unknown>): void {
     const user = this.auth.currentUser;
+    if (!user) return;
     addDoc(this.col, {
       action,
-      userId:     user?.uid    ?? 'system',
-      userEmail:  user?.email  ?? 'system',
+      userId:     user.uid,
+      userEmail:  user.email ?? '',
       targetId:   targetId  ?? null,
       targetType: targetType ?? null,
       meta:       meta       ?? null,
