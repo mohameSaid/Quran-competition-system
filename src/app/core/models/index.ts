@@ -22,6 +22,8 @@ export interface Sheikh {
   id:               string;
   name:             string;
   phone:            string;
+  email?:           string;
+  authUid?:         string;
   categories:       CompetitionCategory[];
   totalEvaluated:   number;
   isActive:         boolean;
@@ -29,23 +31,38 @@ export interface Sheikh {
   createdBy:        string;
 }
 
+// ── Memorizer / محفّظ (stored in /memorizers/{id}) ─────────────
+export interface Memorizer {
+  id:        string;
+  name:      string;
+  isActive:  boolean;
+  createdAt: Date;
+}
+
 // ── Student (stored in /competitions/{cId}/students/{id}) ────
 export interface Student {
   id:             string;
-  fullName:       string;
-  nationalId:     string;
-  parentPhone:    string;
-  sheikhId:       string;   // FK → /sheikhs/{id}
-  sheikhName:     string;   // denormalised for display
-  age:            number;
-  juzCount:       number;   // memorised juz (1–30)
+  fullName:       string;   // اسم المتسابق
+  birthPlace:     string;   // محل الميلاد الحالي
+  birthDate:      Date;
+  parentPhone:    string;   // رقم هاتف ولي الأمر
+  alternatePhone: string;   // رقم هاتف آخر
+  memorizerId:    string;   // FK → /memorizers/{id}
+  memorizerName:  string;
+  juzCount:       number;
+  previousLevel:  string;   // المستوى السابق في آخر مسابقة
   category:       CompetitionCategory;
   status:         StudentStatus;
   sessionId?:     string;
   competitionId:  string;
-  registeredBy:   string;   // uid
+  registeredBy:   string;
   createdAt:      Date;
   updatedAt:      Date;
+  /** @deprecated legacy records */
+  nationalId?:    string;
+  age?:           number;
+  sheikhId?:      string;
+  sheikhName?:    string;
 }
 
 // ── Score (stored in /competitions/{cId}/scores/{id}) ────────
@@ -105,17 +122,7 @@ export interface Competition {
   createdAt:          Date;
 }
 
-// ── Audit log (/auditLogs/{id}) — immutable ──────────────────
-export interface AuditLog {
-  id:         string;
-  action:     string;
-  userId:     string;
-  userEmail:  string;
-  targetId?:  string;
-  targetType?:string;
-  meta?:      Record<string, unknown>;
-  timestamp:  Date;
-}
+// ── Audit log — removed (cost/performance)
 
 // ── UI constants ─────────────────────────────────────────────
 export const CATEGORY_LABELS: Record<CompetitionCategory, string> = {

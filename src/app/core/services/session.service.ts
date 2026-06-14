@@ -17,7 +17,6 @@ import {
 } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
 import { ExamSession, SessionStatus } from "../models";
-import { AuditService } from "./audit.service";
 
 export type SessionCreate = Omit<
   ExamSession,
@@ -27,7 +26,6 @@ export type SessionCreate = Omit<
 @Injectable({ providedIn: "root" })
 export class SessionService {
   private fs = inject(Firestore);
-  private audit = inject(AuditService);
 
   private col(compId: string) {
     return collection(this.fs, `competitions/${compId}/sessions`);
@@ -61,7 +59,6 @@ export class SessionService {
       createdBy,
       createdAt: serverTimestamp(),
     });
-    this.audit.log("session.create", ref.id, "session", { name: data.name });
     return ref.id;
   }
 
@@ -74,7 +71,6 @@ export class SessionService {
       doc(this.fs, `competitions/${compId}/sessions/${sessionId}`),
       data as UpdateData<ExamSession>,
     );
-    this.audit.log("session.update", sessionId, "session");
   }
 
   async updateStatus(
@@ -86,7 +82,6 @@ export class SessionService {
       doc(this.fs, `competitions/${compId}/sessions/${sessionId}`),
       { status },
     );
-    this.audit.log("session.statusUpdate", sessionId, "session", { status });
   }
 
   async assignStudent(
@@ -115,6 +110,5 @@ export class SessionService {
     await deleteDoc(
       doc(this.fs, `competitions/${compId}/sessions/${sessionId}`),
     );
-    this.audit.log("session.delete", sessionId, "session");
   }
 }

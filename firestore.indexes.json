@@ -42,10 +42,11 @@
       ]
     },
     {
-      "collectionGroup": "auditLogs",
+      "collectionGroup": "memorizers",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "timestamp", "order": "DESCENDING" }
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "name",     "order": "ASCENDING" }
       ]
     },
     {

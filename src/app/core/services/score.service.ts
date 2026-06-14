@@ -5,7 +5,6 @@ import {
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Score, ScoreBreakdown, SCORE_MAX } from '../models';
-import { AuditService } from './audit.service';
 import { StudentService } from './student.service';
 import { SheikhService } from './sheikh.service';
 import { CompetitionService } from './competition.service';
@@ -13,7 +12,6 @@ import { CompetitionService } from './competition.service';
 @Injectable({ providedIn: 'root' })
 export class ScoreService {
   private fs           = inject(Firestore);
-  private audit        = inject(AuditService);
   private studentSvc   = inject(StudentService);
   private sheikhSvc    = inject(SheikhService);
   private competitionSvc = inject(CompetitionService);
@@ -85,7 +83,6 @@ export class ScoreService {
 
     await this.studentSvc.updateStatus(compId, studentId, 'evaluated');
     await this.sheikhSvc.incrementEvaluated(sheikhId);
-    this.audit.log('score.submit', studentId, 'score', { total });
   }
 
   async publishAll(compId: string): Promise<void> {
@@ -96,6 +93,5 @@ export class ScoreService {
     });
     batch.update(doc(this.fs, `competitions/${compId}`), { resultsPublished: true });
     await batch.commit();
-    this.audit.log('results.publish', compId, 'competition');
   }
 }

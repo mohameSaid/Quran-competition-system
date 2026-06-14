@@ -22,12 +22,12 @@ service cloud.firestore {
     // ── Users ────────────────────────────────────────────────
     match /users/{userId} {
       allow read:   if isAuth() && (uid() == userId || isAdmin());
-      allow create: if isAuth() && uid() == userId;
+      allow create: if isAdmin() || (isAuth() && uid() == userId);
       allow update: if isAdmin();
       allow delete: if false;
     }
 
-    // ── Sheikhs ──────────────────────────────────────────────
+    // ── Sheikhs (judges) ─────────────────────────────────────
     match /sheikhs/{sheikhId} {
       allow read:   if true;
       allow create: if isAdmin();
@@ -40,12 +40,17 @@ service cloud.firestore {
       );
     }
 
+    // ── Memorizers (محفّظون) ─────────────────────────────────
+    match /memorizers/{memorizerId} {
+      allow read:   if true;
+      allow write:  if isAdmin();
+    }
+
     // ── Competitions ─────────────────────────────────────────
     match /competitions/{compId} {
       allow read:  if true;
       allow write: if isAdmin();
 
-      // Students
       match /students/{studentId} {
         allow read:  if isAdmin() || isSheikh();
         allow create: if true;
@@ -58,7 +63,6 @@ service cloud.firestore {
         allow delete: if isAdmin();
       }
 
-      // Scores — immutable once written
       match /scores/{scoreId} {
         allow read: if
           resource.data.isPublished == true ||
@@ -74,19 +78,11 @@ service cloud.firestore {
         allow delete: if false;
       }
 
-      // Sessions
       match /sessions/{sessionId} {
         allow read: if isAdmin() ||
           (isSheikh() && resource.data.sheikhId == mySheikhId());
         allow write: if isAdmin();
       }
-    }
-
-    // ── Audit Logs ───────────────────────────────────────────
-    match /auditLogs/{logId} {
-      allow read:          if isAdmin();
-      allow create:        if isAuth();
-      allow update, delete: if false;
     }
   }
 }

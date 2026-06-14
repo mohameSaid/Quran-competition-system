@@ -17,22 +17,20 @@ import {
 } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
 import { Sheikh, CompetitionCategory } from "../models";
-import { AuditService } from "./audit.service";
+import { AuthAdminService } from "./auth-admin.service";
 
 @Injectable({ providedIn: "root" })
 export class SheikhService {
   private fs = inject(Firestore);
-  private audit = inject(AuditService);
+  private authAdmin = inject(AuthAdminService);
   private col = collection(this.fs, "sheikhs");
 
-  /** All sheikhs — real-time stream */
   getAll(): Observable<Sheikh[]> {
     return collectionData(query(this.col, orderBy("name", "asc")), {
       idField: "id",
     }) as Observable<Sheikh[]>;
   }
 
-  /** Only active sheikhs (for dropdowns) */
   getActive(): Observable<Sheikh[]> {
     return collectionData(
       query(this.col, where("isActive", "==", true), orderBy("name", "asc")),
@@ -54,29 +52,47 @@ export class SheikhService {
       totalEvaluated: 0,
       createdAt: serverTimestamp(),
     });
-    this.audit.log("sheikh.create", ref.id, "sheikh", { name: data.name });
     return ref.id;
+  }
+
+  /** Create sheikh profile + Firebase Auth login (admin stays signed in) */
+  async addWithAuth(
+    data: Omit<Sheikh, "id" | "totalEvaluated" | "createdAt" | "email" | "authUid">,
+    email: string,
+    password: string,
+  ): Promise<{ sheikhId: string; authUid: string }> {
+    const ref = await addDoc(this.col, {
+      ...data,
+      email,
+      totalEvaluated: 0,
+      createdAt: serverTimestamp(),
+    });
+    const authUid = await this.authAdmin.createSheikhUser(
+      email,
+      password,
+      data.name,
+      ref.id,
+    );
+    await updateDoc(doc(this.fs, `sheikhs/${ref.id}`), { authUid });
+    return { sheikhId: ref.id, authUid };
   }
 
   async update(
     id: string,
     data: Partial<Omit<Sheikh, "id" | "createdAt">>,
   ): Promise<void> {
-    const ref = doc(this.fs, `sheikhs/${id}`);
-
-    await updateDoc(ref, data as UpdateData<Sheikh>);
-
-    this.audit.log("sheikh.update", id, "sheikh", data);
+    await updateDoc(
+      doc(this.fs, `sheikhs/${id}`),
+      data as UpdateData<Sheikh>,
+    );
   }
 
   async toggleActive(id: string, isActive: boolean): Promise<void> {
     await updateDoc(doc(this.fs, `sheikhs/${id}`), { isActive });
-    this.audit.log("sheikh.toggleActive", id, "sheikh", { isActive });
   }
 
   async delete(id: string): Promise<void> {
     await deleteDoc(doc(this.fs, `sheikhs/${id}`));
-    this.audit.log("sheikh.delete", id, "sheikh");
   }
 
   async incrementEvaluated(id: string): Promise<void> {

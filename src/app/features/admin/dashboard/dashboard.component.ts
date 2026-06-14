@@ -5,18 +5,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { StudentService } from '../../../core/services/student.service';
 import { SessionService } from '../../../core/services/session.service';
-import { AuditService } from '../../../core/services/audit.service';
 import { CompetitionService } from '../../../core/services/competition.service';
-import { Student, ExamSession, AuditLog } from '../../../core/models';
-import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { Student, ExamSession } from '../../../core/models';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule],
   template: `
     <div class="page-wrap">
-      <!-- Stats — derived from Firestore data -->
       <div class="stats-grid">
         <div class="stat-card stat-card--gold">
           <div class="stat-card__label"><mat-icon style="font-size:15px">group</mat-icon> إجمالي المسجلين</div>
@@ -41,7 +38,6 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
       </div>
 
       <div class="dash-grid">
-        <!-- Quick actions -->
         <div class="qc-card">
           <div class="section-header"><div class="section-title">إجراءات سريعة</div></div>
           <div class="quick-actions">
@@ -52,7 +48,6 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
           </div>
         </div>
 
-        <!-- Category distribution -->
         <div class="qc-card">
           <div class="section-header"><div class="section-title">توزيع الفئات</div></div>
           <div class="cat-dist">
@@ -69,7 +64,6 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
           </div>
         </div>
 
-        <!-- Today's sessions -->
         <div class="qc-card">
           <div class="section-header">
             <div class="section-title">جلسات اليوم</div>
@@ -93,21 +87,20 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
           }
         </div>
 
-        <!-- Audit log -->
         <div class="qc-card">
-          <div class="section-header"><div class="section-title">آخر العمليات</div></div>
-          @if (auditLogs().length === 0) {
-            <p style="font-size:13px;color:var(--text-muted);text-align:center;padding:24px">لا توجد عمليات مسجّلة</p>
+          <div class="section-header">
+            <div class="section-title">آخر التسجيلات</div>
+            <a routerLink="/admin/students" style="font-size:12px;color:var(--gold)">عرض الكل</a>
+          </div>
+          @if (recentStudents().length === 0) {
+            <p style="font-size:13px;color:var(--text-muted);text-align:center;padding:24px">لا يوجد متسابقون بعد</p>
           }
-          @for (log of auditLogs(); track log.id) {
-            <div class="audit-row">
-              <div class="audit-dot"></div>
+          @for (s of recentStudents(); track s.id) {
+            <div class="recent-row">
+              <div class="recent-dot"></div>
               <div style="flex:1">
-                <div style="font-size:13px">{{ log.action }}</div>
-                <div style="font-size:11px;color:var(--text-muted)">{{ log.userEmail }}</div>
-              </div>
-              <div style="font-size:11px;color:var(--text-muted);white-space:nowrap">
-                {{ log.timestamp | date:'shortTime' }}
+                <div style="font-size:13px;font-weight:600">{{ s.fullName }}</div>
+                <div style="font-size:11px;color:var(--text-muted)">{{ s.juzCount }} جزء · {{ s.parentPhone }}</div>
               </div>
             </div>
           }
@@ -126,26 +119,23 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
       &--purple{background:rgba(139,108,245,.1);color:var(--purple);&:hover{background:rgba(139,108,245,.18);}}
     }
     .cat-dist      { display:flex;flex-direction:column;gap:12px; }
-    .cat-dist-item {}
     .cat-dist-lbl  { display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;color:var(--text-secondary);strong{color:var(--text-primary);} }
     .cat-dist-track{ height:7px;background:var(--bg-secondary);border-radius:4px;overflow:hidden; }
     .cat-dist-fill { height:100%;border-radius:4px;transition:width .5s ease; }
     .session-row   { display:flex;align-items:center;gap:11px;margin-bottom:12px;&:last-child{margin-bottom:0;} }
     .session-dot   { width:9px;height:9px;border-radius:50%;flex-shrink:0; }
-    .audit-row     { display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(42,54,80,.4);&:last-child{border-bottom:none;} }
-    .audit-dot     { width:7px;height:7px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0; }
+    .recent-row    { display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(42,54,80,.4);&:last-child{border-bottom:none;} }
+    .recent-dot    { width:7px;height:7px;border-radius:50%;background:var(--primary);margin-top:5px;flex-shrink:0; }
     @media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
   `]
 })
 export class DashboardComponent implements OnInit {
   private studentSvc     = inject(StudentService);
   private sessionSvc     = inject(SessionService);
-  private auditSvc       = inject(AuditService);
   private competitionSvc = inject(CompetitionService);
 
   students   = signal<Student[]>([]);
   sessions   = signal<ExamSession[]>([]);
-  auditLogs  = signal<AuditLog[]>([]);
 
   evaluated    = signal(0);
   pending      = signal(0);
@@ -165,13 +155,16 @@ export class DashboardComponent implements OnInit {
       this.evaluatedPct.set(list.length ? Math.round(ev / list.length * 100) : 0);
     });
     this.sessionSvc.getAll(this.compId).subscribe(s => this.sessions.set(s));
-    this.auditSvc.getRecent(10).subscribe(l => this.auditLogs.set(l));
+  }
+
+  recentStudents() {
+    return this.students().slice(0, 8);
   }
 
   todaySessions() {
     const today = new Date().toDateString();
     return this.sessions().filter(s => {
-      const d = s.date instanceof Date ? s.date : (s.date as any).toDate?.() ?? new Date(s.date);
+      const d = s.date instanceof Date ? s.date : (s.date as { toDate?: () => Date }).toDate?.() ?? new Date(s.date as unknown as string);
       return d.toDateString() === today;
     });
   }

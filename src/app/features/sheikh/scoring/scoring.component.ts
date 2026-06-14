@@ -42,7 +42,7 @@ interface Criterion { key: keyof ScoreBreakdown; label: string; max: number; des
             <div class="s-name">{{ student()!.fullName }}</div>
             <div class="s-cat">{{ student()!.category | categoryLabel }}</div>
             <div class="s-juz">{{ student()!.juzCount }} جزء محفوظ</div>
-            <div class="s-sheikh">شيخه: {{ student()!.sheikhName }}</div>
+            <div class="s-sheikh">المحفّظ: {{ student()!.memorizerName || student()!.sheikhName }}</div>
 
             <!-- SVG ring -->
             <svg viewBox="0 0 120 120" width="130" height="130" style="margin:12px 0">
