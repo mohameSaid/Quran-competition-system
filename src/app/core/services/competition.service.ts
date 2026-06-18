@@ -6,6 +6,7 @@ import {
   doc,
   docData,
   addDoc,
+  setDoc,
   updateDoc,
   serverTimestamp,
   query,
@@ -95,6 +96,29 @@ export class CompetitionService {
       createdAt: serverTimestamp(),
     });
     return ref.id;
+  }
+
+  /**
+   * Create-or-update the single canonical competition document.
+   *
+   * We deliberately write to the FIXED id `competitions/default` because
+   * initActive() looks it up first and every admin/sheikh screen falls back
+   * to compId 'default'. Using addDoc() (random id) here would orphan those
+   * fallbacks and leave the public /register page unable to find a competition
+   * — the original "تعذّر الاتصال بالخادم" bug. merge:true lets the admin edit
+   * fields incrementally without clobbering the rest of the document.
+   */
+  async saveSettings(data: Omit<Competition, 'id' | 'createdAt'>): Promise<void> {
+    const ref = doc(this.fs, 'competitions/default');
+    const isNew = !this.active();
+    await setDoc(
+      ref,
+      { ...data, ...(isNew ? { createdAt: serverTimestamp() } : {}) },
+      { merge: true },
+    );
+    // Re-pull so the active() signal + readiness status reflect the save and
+    // the rest of the app (including the public register page) unblocks.
+    await this.initActive();
   }
 
   async update(id: string, data: Partial<Competition>): Promise<void> {

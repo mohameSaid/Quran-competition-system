@@ -51,9 +51,9 @@ import {
         </mat-card>
       } @else if (compStatus() === 'error') {
         <mat-card class="state-card">
-          <mat-icon>cloud_off</mat-icon>
-          <h3>تعذّر الاتصال بالخادم</h3>
-          <p>تحقق من اتصالك بالإنترنت ثم أعد المحاولة.</p>
+          <mat-icon>event_busy</mat-icon>
+          <h3>التسجيل غير متاح حالياً</h3>
+          <p>لم تُفتح المسابقة بعد، أو تعذّر تحميل بياناتها. حاول مرة أخرى لاحقاً.</p>
           <button mat-flat-button class="btn-gold" (click)="retryLoad()" [disabled]="retrying()">
             @if (retrying()) { <mat-spinner diameter="18" /> }
             إعادة المحاولة

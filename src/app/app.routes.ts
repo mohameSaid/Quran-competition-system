@@ -27,6 +27,7 @@ export const routes: Routes = [
       { path: 'sessions',   loadComponent: () => import('./features/admin/sessions/sessions.component').then(m => m.SessionsComponent) },
       { path: 'results',    loadComponent: () => import('./features/admin/results/results.component').then(m => m.ResultsComponent) },
       { path: 'reports',    loadComponent: () => import('./features/admin/reports/reports.component').then(m => m.ReportsComponent) },
+      { path: 'settings',   loadComponent: () => import('./features/admin/settings/settings.component').then(m => m.SettingsComponent) },
     ],
   },
   // ── Sheikh ───────────────────────────────────────────────────

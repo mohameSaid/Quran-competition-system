@@ -13,6 +13,7 @@ const NAV = [
   { icon:'event_note',          label:'الجلسات',        route:'/admin/sessions'  },
   { icon:'leaderboard',         label:'النتائج',         route:'/admin/results'   },
   { icon:'assessment',          label:'التقارير',         route:'/admin/reports'   },
+  { icon:'settings',            label:'إعدادات المسابقة', route:'/admin/settings'  },
 ];
 
 @Component({
