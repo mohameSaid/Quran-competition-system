@@ -25,12 +25,24 @@ export class CompetitionService {
 
   readonly active = signal<Competition | null>(null);
 
+  /**
+   * Tri-state readiness flag for consumers that can't just "catch" a
+   * thrown error (e.g. the public registration page, which is hit by
+   * anonymous users before any other Firestore call has warmed up).
+   *  - 'loading' : initActive() in flight, don't render forms yet
+   *  - 'ready'   : active() is populated, safe to register
+   *  - 'error'   : Firestore unreachable / rules denied / no doc found
+   */
+  readonly status = signal<'loading' | 'ready' | 'error'>('loading');
+
   /** Load competition on app boot — avoids orderBy index; tolerates slow/offline Firestore */
   async initActive(fallbackId = 'default'): Promise<void> {
+    this.status.set('loading');
     try {
       const directSnap = await getDoc(doc(this.fs, `competitions/${fallbackId}`));
       if (directSnap.exists()) {
         this.active.set({ id: directSnap.id, ...directSnap.data() } as Competition);
+        this.status.set('ready');
         return;
       }
 
@@ -38,12 +50,23 @@ export class CompetitionService {
       if (!snap.empty) {
         const d = snap.docs[0];
         this.active.set({ id: d.id, ...d.data() } as Competition);
+        this.status.set('ready');
+      } else {
+        // No competition document exists at all yet — this is a real,
+        // expected state for a brand-new deployment, not a crash.
+        this.status.set('error');
       }
     } catch (err) {
       if (isDevMode()) {
         console.warn('[CompetitionService] Could not load competition from Firestore', err);
       }
+      this.status.set('error');
     }
+  }
+
+  /** Lets a page (e.g. public registration) retry after a transient failure. */
+  async retry(): Promise<void> {
+    await this.initActive();
   }
 
   requireActiveCompetition(): string {

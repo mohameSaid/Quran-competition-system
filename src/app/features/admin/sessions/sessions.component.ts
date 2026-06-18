@@ -12,13 +12,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SessionService } from '../../../core/services/session.service';
 import { SheikhService } from '../../../core/services/sheikh.service';
+import { StudentService } from '../../../core/services/student.service';
 import { CompetitionService } from '../../../core/services/competition.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
-import { ExamSession, Sheikh, CATEGORY_LABELS, CompetitionCategory, SessionStatus } from '../../../core/models';
+import { ExamSession, Sheikh, Student, CATEGORY_LABELS, CompetitionCategory, SessionStatus } from '../../../core/models';
 
 @Component({
   selector: 'app-sessions',
@@ -83,6 +84,9 @@ import { ExamSession, Sheikh, CATEGORY_LABELS, CompetitionCategory, SessionStatu
               </div>
 
               <div class="session-card__actions">
+                <button mat-stroked-button style="flex:1;font-size:12px" (click)="openAssign(s)">
+                  <mat-icon style="font-size:15px">group_add</mat-icon> المتسابقون
+                </button>
                 <button mat-stroked-button style="flex:1;font-size:12px" (click)="openForm(s)">
                   <mat-icon style="font-size:15px">edit</mat-icon> تعديل
                 </button>
@@ -184,6 +188,87 @@ import { ExamSession, Sheikh, CATEGORY_LABELS, CompetitionCategory, SessionStatu
           </div>
         </div>
       }
+
+      <!-- Assign students overlay -->
+      @if (showAssign()) {
+        <div class="form-overlay" (click)="closeAssign()">
+          <div class="form-sheet assign-sheet" (click)="$event.stopPropagation()">
+            <div class="form-sheet__header">
+              <h3>متسابقو: {{ assigningSession()?.name }}</h3>
+              <button mat-icon-button (click)="closeAssign()"><mat-icon>close</mat-icon></button>
+            </div>
+
+            @if (assignError()) {
+              <div class="error-box"><mat-icon>error_outline</mat-icon> {{ assignError() }}</div>
+            }
+
+            <div class="assign-cols">
+              <!-- Currently assigned -->
+              <div class="assign-col">
+                <div class="assign-col__head">
+                  مُسجَّلون في الجلسة
+                  <span class="assign-count">{{ assignedStudents().length }} / {{ assigningSession()?.capacity }}</span>
+                </div>
+                <div class="assign-list">
+                  @if (assignLoading()) {
+                    <app-loading-spinner [diameter]="28" />
+                  } @else if (assignedStudents().length === 0) {
+                    <p class="assign-empty">لا يوجد متسابقون مُسندون بعد</p>
+                  }
+                  @for (s of assignedStudents(); track s.id) {
+                    <div class="assign-row">
+                      <div style="flex:1">
+                        <div class="assign-row__name">{{ s.fullName }}</div>
+                        <div class="assign-row__sub">{{ s.category | categoryLabel }} • {{ s.juzCount }} جزء</div>
+                      </div>
+                      <button mat-icon-button style="color:var(--red)" title="إزالة من الجلسة"
+                              (click)="unassign(s)" [disabled]="assignBusy()">
+                        <mat-icon>remove_circle_outline</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Unassigned pool -->
+              <div class="assign-col">
+                <div class="assign-col__head">
+                  متسابقون غير مُسندين
+                  <span class="assign-count">{{ unassignedStudents().length }}</span>
+                </div>
+                <div class="assign-list">
+                  @if (assignLoading()) {
+                    <app-loading-spinner [diameter]="28" />
+                  } @else if (unassignedStudents().length === 0) {
+                    <p class="assign-empty">لا يوجد متسابقون متاحون لهذه الفئة</p>
+                  }
+                  @for (s of unassignedStudents(); track s.id) {
+                    <div class="assign-row">
+                      <div style="flex:1">
+                        <div class="assign-row__name">{{ s.fullName }}</div>
+                        <div class="assign-row__sub">{{ s.category | categoryLabel }} • {{ s.juzCount }} جزء</div>
+                      </div>
+                      <button mat-icon-button style="color:var(--green)" title="إسناد للجلسة"
+                              (click)="assignOne(s)"
+                              [disabled]="assignBusy() || isSessionFull()">
+                        <mat-icon>add_circle_outline</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            @if (isSessionFull()) {
+              <div class="full-notice"><mat-icon>info</mat-icon> الجلسة وصلت للحد الأقصى من المتسابقين</div>
+            }
+
+            <div style="display:flex;justify-content:flex-end;margin-top:14px">
+              <button mat-flat-button class="btn-gold" (click)="closeAssign()">تم</button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -219,11 +304,24 @@ import { ExamSession, Sheikh, CATEGORY_LABELS, CompetitionCategory, SessionStatu
     .form-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
     .form-sheet{background:var(--bg-card);border:1px solid var(--border-accent);border-radius:var(--r-xl);padding:28px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;}
     .form-sheet__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;h3{font-size:17px;font-weight:700;color:var(--gold-light);}}
+    .assign-sheet{max-width:760px;}
+    .assign-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .assign-col{display:flex;flex-direction:column;gap:8px;min-width:0;}
+    .assign-col__head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--text-secondary);padding:0 2px;}
+    .assign-count{font-size:11px;font-weight:600;color:var(--text-muted);background:var(--bg-secondary);padding:2px 8px;border-radius:10px;}
+    .assign-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;background:var(--bg-secondary);border-radius:var(--r-sm);padding:8px;min-height:80px;}
+    .assign-empty{font-size:12px;color:var(--text-muted);text-align:center;padding:20px 8px;}
+    .assign-row{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-primary);border-radius:8px;padding:8px 10px;}
+    .assign-row__name{font-size:13px;font-weight:600;}
+    .assign-row__sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+    .full-notice{display:flex;align-items:center;gap:7px;margin-top:12px;padding:9px 13px;background:rgba(240,160,48,.12);border:1px solid rgba(240,160,48,.3);border-radius:var(--r-sm);color:var(--amber);font-size:12px;}
+    @media(max-width:640px){.assign-cols{grid-template-columns:1fr;}}
   `]
 })
 export class SessionsComponent implements OnInit {
   private sessionSvc     = inject(SessionService);
   private sheikhSvc      = inject(SheikhService);
+  private studentSvc     = inject(StudentService);
   private competitionSvc = inject(CompetitionService);
   private auth           = inject(AuthService);
   private dialog         = inject(MatDialog);
@@ -238,6 +336,15 @@ export class SessionsComponent implements OnInit {
   saving     = signal(false);
   formError  = signal('');
   activeTab  = 'all';
+
+  // ── Student assignment state ─────────────────────────────────
+  showAssign        = signal(false);
+  assigningSession  = signal<ExamSession | null>(null);
+  assignedStudents  = signal<Student[]>([]);
+  unassignedStudents = signal<Student[]>([]);
+  assignLoading     = signal(true);
+  assignBusy        = signal(false);
+  assignError       = signal('');
 
   tabs = [
     { key:'all',       label:'الكل'      },
@@ -353,5 +460,82 @@ export class SessionsComponent implements OnInit {
       await this.sessionSvc.delete(this.compId, s.id);
       this.snack.open('تم حذف الجلسة', '', { duration: 3000 });
     });
+  }
+
+  // ── Student assignment ────────────────────────────────────────
+  // This is the missing piece of the session lifecycle: it's the
+  // only place an admin can actually move a student from "registered"
+  // into a specific sheikh's session. Without this screen, sessionId
+  // never gets set and the sheikh's queue stays empty forever.
+
+  openAssign(s: ExamSession): void {
+    this.assigningSession.set(s);
+    this.assignError.set('');
+    this.assignLoading.set(true);
+    this.showAssign.set(true);
+
+    // Students already in THIS session
+    this.studentSvc.getBySession(this.compId, s.id).subscribe(list => {
+      this.assignedStudents.set(list);
+      this.assignLoading.set(false);
+    });
+
+    // Students with no session yet, matching this session's category
+    this.studentSvc.getUnassigned(this.compId, s.category).subscribe(list => {
+      this.unassignedStudents.set(list);
+    });
+  }
+
+  closeAssign(): void {
+    this.showAssign.set(false);
+    this.assigningSession.set(null);
+    this.assignedStudents.set([]);
+    this.unassignedStudents.set([]);
+  }
+
+  isSessionFull(): boolean {
+    const s = this.assigningSession();
+    if (!s) return false;
+    return this.assignedStudents().length >= s.capacity;
+  }
+
+  async assignOne(student: Student): Promise<void> {
+    const s = this.assigningSession();
+    if (!s || this.assignBusy()) return;
+    if (this.isSessionFull()) {
+      this.assignError.set('الجلسة وصلت للحد الأقصى من المتسابقين');
+      return;
+    }
+    this.assignBusy.set(true);
+    this.assignError.set('');
+    try {
+      await this.sessionSvc.assignStudent(this.compId, s.id, student.id);
+      // Optimistic local update so the UI feels instant; the
+      // subscriptions above will reconcile shortly after anyway.
+      this.assignedStudents.set([...this.assignedStudents(), student]);
+      this.unassignedStudents.set(this.unassignedStudents().filter(x => x.id !== student.id));
+      this.snack.open(`تم إسناد ${student.fullName} للجلسة`, '', { duration: 2000 });
+    } catch (e: any) {
+      this.assignError.set(e?.message ?? 'فشل إسناد المتسابق');
+    } finally {
+      this.assignBusy.set(false);
+    }
+  }
+
+  async unassign(student: Student): Promise<void> {
+    const s = this.assigningSession();
+    if (!s || this.assignBusy()) return;
+    this.assignBusy.set(true);
+    this.assignError.set('');
+    try {
+      await this.sessionSvc.removeStudent(this.compId, s.id, student.id);
+      this.assignedStudents.set(this.assignedStudents().filter(x => x.id !== student.id));
+      this.unassignedStudents.set([...this.unassignedStudents(), student]);
+      this.snack.open(`تمت إزالة ${student.fullName} من الجلسة`, '', { duration: 2000 });
+    } catch (e: any) {
+      this.assignError.set(e?.message ?? 'فشل إزالة المتسابق');
+    } finally {
+      this.assignBusy.set(false);
+    }
   }
 }

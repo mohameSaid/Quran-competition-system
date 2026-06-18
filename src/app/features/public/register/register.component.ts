@@ -10,7 +10,6 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCardModule } from "@angular/material/card";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MemorizerService } from "../../../core/services/memorizer.service";
 import { StudentService } from "../../../core/services/student.service";
 import { CompetitionService } from "../../../core/services/competition.service";
 import { JUZ_OPTIONS } from "../../../core/models";
@@ -44,7 +43,23 @@ import {
         <p>املأ البيانات التالية للتسجيل في المسابقة</p>
       </div>
 
-      @if (registrationClosed()) {
+      @if (compStatus() === 'loading') {
+        <mat-card class="state-card">
+          <mat-spinner diameter="40" style="margin:0 auto 16px" />
+          <h3>جاري التحميل...</h3>
+          <p>يرجى الانتظار لحظة</p>
+        </mat-card>
+      } @else if (compStatus() === 'error') {
+        <mat-card class="state-card">
+          <mat-icon>cloud_off</mat-icon>
+          <h3>تعذّر الاتصال بالخادم</h3>
+          <p>تحقق من اتصالك بالإنترنت ثم أعد المحاولة.</p>
+          <button mat-flat-button class="btn-gold" (click)="retryLoad()" [disabled]="retrying()">
+            @if (retrying()) { <mat-spinner diameter="18" /> }
+            إعادة المحاولة
+          </button>
+        </mat-card>
+      } @else if (registrationClosed()) {
         <mat-card class="state-card">
           <mat-icon>event_busy</mat-icon>
           <h3>التسجيل مغلق حالياً</h3>
@@ -145,23 +160,14 @@ import {
             </mat-card-header>
             <mat-card-content>
               <div class="fields">
-                <!-- <mat-form-field appearance="outline" class="full-width">
+                <mat-form-field appearance="outline" class="full-width">
                   <mat-label>اسم المحفّظ *</mat-label>
-                  <mat-select formControlName="memorizerId" (selectionChange)="onMemorizerChange($event.value)">
-                    @if (memorizersLoading()) {
-                      <mat-option disabled>جاري التحميل...</mat-option>
-                    }
-                    @for (m of memorizers(); track m.id) {
-                      <mat-option [value]="m.id">{{ m.name }}</mat-option>
-                    }
-                    @if (!memorizersLoading() && memorizers().length === 0) {
-                      <mat-option disabled>لا يوجد محفّظون — تواصل مع الإدارة</mat-option>
-                    }
-                  </mat-select>
-                  @if (f.memorizerId.invalid && f.memorizerId.touched) {
-                    <mat-error>يجب اختيار قيمة</mat-error>
+                  <input matInput formControlName="memorizerName" placeholder="اكتب اسم المحفّظ">
+                  <mat-hint>حقل نصي حر — اكتب الاسم كما تريد، لا يلزم اختيار من قائمة</mat-hint>
+                  @if (f.memorizerName.invalid && f.memorizerName.touched) {
+                    <mat-error>هذا الحقل مطلوب</mat-error>
                   }
-                </mat-form-field> -->
+                </mat-form-field>
 
                 <div class="form-grid-2">
                   <mat-form-field appearance="outline" class="full-width">
@@ -355,7 +361,6 @@ import {
 })
 export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private memorizerSvc = inject(MemorizerService);
   private studentSvc = inject(StudentService);
   private competitionSvc = inject(CompetitionService);
 
@@ -365,8 +370,11 @@ export class RegisterComponent implements OnInit {
     birthDate: [null as Date | null, Validators.required],
     parentPhone: ["", requiredEgyptMobileValidator()],
     alternatePhone: ["", optionalEgyptMobileValidator()],
-    memorizerId: ["", ],
-    memorizerName: [""],
+    // Free text — the memorizer's name as typed by the registrant.
+    // NOT a select, NOT linked to any predefined /memorizers collection.
+    // This is intentionally separate from Sheikh assignment, which
+    // happens later in the admin/session-assignment flow.
+    memorizerName: ["", [Validators.required, Validators.minLength(2)]],
     juzCount: [null as number | null, Validators.required],
     previousLevel: ["", Validators.required],
   });
@@ -375,9 +383,6 @@ export class RegisterComponent implements OnInit {
     return this.form.controls;
   }
 
-  memorizers = signal<{ id: string; name: string }[]>([]);
-  memorizersLoading = signal(true);
-
   juzOptions = JUZ_OPTIONS;
   previousLevels = PREVIOUS_LEVEL_OPTIONS;
 
@@ -385,6 +390,10 @@ export class RegisterComponent implements OnInit {
   success = signal(false);
   regNumber = signal("");
   error = signal("");
+  retrying = signal(false);
+
+  /** Mirrors CompetitionService.status so the template can gate the whole form on it. */
+  compStatus = this.competitionSvc.status;
 
   registrationClosed = () => {
     const c = this.competitionSvc.active();
@@ -392,18 +401,35 @@ export class RegisterComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    this.memorizerSvc.getActive().subscribe((list) => {
-      this.memorizers.set(list);
-      this.memorizersLoading.set(false);
-    });
+    // If the app-level APP_INITIALIZER hasn't resolved yet (slow network,
+    // anonymous user landing directly on /register before anything else
+    // warmed up the connection), retry once on our own so the visitor
+    // isn't stuck on a permanent "loading" card.
+    if (this.compStatus() === 'loading') {
+      this.competitionSvc.initActive().catch(() => void 0);
+    }
   }
 
-  onMemorizerChange(id: string): void {
-    const m = this.memorizers().find((x) => x.id === id);
-    if (m) this.form.patchValue({ memorizerName: m.name });
+  async retryLoad(): Promise<void> {
+    this.retrying.set(true);
+    try {
+      await this.competitionSvc.retry();
+    } finally {
+      this.retrying.set(false);
+    }
   }
 
   async submit(): Promise<void> {
+    // Guard on the readiness signal FIRST. requireActiveCompetition()
+    // throwing was the original bug: an anonymous visitor would hit a
+    // raw, unhandled "لم يتم تحميل بيانات المسابقة" exception with no
+    // recovery path. Now the UI itself prevents reaching this point
+    // unless compStatus() === 'ready', and this check is a defensive
+    // second line in case state changes between render and submit.
+    if (this.compStatus() !== 'ready') {
+      this.error.set("تعذّر تحميل بيانات المسابقة، يرجى إعادة المحاولة");
+      return;
+    }
     if (this.registrationClosed()) {
       this.error.set("التسجيل مغلق حالياً");
       return;
@@ -417,6 +443,11 @@ export class RegisterComponent implements OnInit {
     try {
       const compId = this.competitionSvc.requireActiveCompetition();
       const v = this.form.value;
+      // memorizerId is no longer a separate FK selection — it's free text.
+      // We keep the field populated (slugified) only so existing reports/
+      // filters that group by memorizerId keep working; memorizerName is
+      // the source of truth and is what's actually displayed everywhere.
+      const memorizerName = v.memorizerName!.trim();
       const id = await this.studentSvc.add(
         compId,
         {
@@ -425,8 +456,8 @@ export class RegisterComponent implements OnInit {
           birthDate: v.birthDate!,
           parentPhone: v.parentPhone!,
           alternatePhone: v.alternatePhone ?? "",
-          memorizerId: v.memorizerId!,
-          memorizerName: v.memorizerName!,
+          memorizerId: memorizerName,
+          memorizerName: memorizerName,
           juzCount: v.juzCount!,
           previousLevel: v.previousLevel!,
           category: categoryFromJuz(v.juzCount!),

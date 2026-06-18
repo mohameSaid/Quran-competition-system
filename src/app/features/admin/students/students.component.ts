@@ -13,7 +13,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../../core/services/student.service';
-import { MemorizerService } from '../../../core/services/memorizer.service';
 import { CompetitionService } from '../../../core/services/competition.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -21,7 +20,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
-import { Student, Memorizer, CATEGORY_LABELS, JUZ_OPTIONS, CompetitionCategory } from '../../../core/models';
+import { Student, CATEGORY_LABELS, JUZ_OPTIONS, CompetitionCategory } from '../../../core/models';
 import {
   requiredEgyptMobileValidator,
   optionalEgyptMobileValidator,
@@ -177,17 +176,14 @@ import { firestoreToDate } from '../../../core/utils/firestore-date.util';
               </div>
 
               <p class="section-label">بيانات الحفظ</p>
-              <!-- <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="full-width">
                 <mat-label>اسم المحفّظ *</mat-label>
-                <mat-select formControlName="memorizerId" (selectionChange)="onMemorizerChange($event.value)">
-                  @for (m of memorizers(); track m.id) {
-                    <mat-option [value]="m.id">{{ m.name }}</mat-option>
-                  }
-                </mat-select>
-                @if (form.get('memorizerId')?.invalid && form.get('memorizerId')?.touched) {
-                  <mat-error>يجب اختيار قيمة</mat-error>
+                <input matInput formControlName="memorizerName" placeholder="اكتب اسم المحفّظ">
+                <mat-hint>حقل نصي حر — لا يلزم اختيار من قائمة، ومستقل عن اختيار الشيخ</mat-hint>
+                @if (form.get('memorizerName')?.invalid && form.get('memorizerName')?.touched) {
+                  <mat-error>هذا الحقل مطلوب</mat-error>
                 }
-              </mat-form-field> -->
+              </mat-form-field>
               <div class="form-grid-2">
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>عدد الأجزاء المحفوظة *</mat-label>
@@ -255,7 +251,6 @@ import { firestoreToDate } from '../../../core/utils/firestore-date.util';
 })
 export class StudentsComponent implements OnInit {
   private studentSvc     = inject(StudentService);
-  private memorizerSvc   = inject(MemorizerService);
   private competitionSvc = inject(CompetitionService);
   private exportSvc      = inject(ExportService);
   private auth           = inject(AuthService);
@@ -265,7 +260,6 @@ export class StudentsComponent implements OnInit {
 
   all        = signal<Student[]>([]);
   filtered   = signal<Student[]>([]);
-  memorizers = signal<Memorizer[]>([]);
   loading    = signal(true);
   exporting  = signal(false);
   showForm   = signal(false);
@@ -288,8 +282,8 @@ export class StudentsComponent implements OnInit {
     birthDate:      [null as Date | null, Validators.required],
     parentPhone:    ['', requiredEgyptMobileValidator()],
     alternatePhone: ['', optionalEgyptMobileValidator()],
-    memorizerId:    ['',  ],
-    memorizerName:  [''],
+    // Free text, same as the public register form — see register.component.ts
+    memorizerName:  ['', [Validators.required, Validators.minLength(2)]],
     juzCount:       [null as number | null, Validators.required],
     previousLevel:  ['', Validators.required],
   });
@@ -303,7 +297,6 @@ export class StudentsComponent implements OnInit {
     this.studentSvc.getAll(this.compId).subscribe(list => {
       this.all.set(list); this.applyFilter(); this.loading.set(false);
     });
-    this.memorizerSvc.getActive().subscribe(m => this.memorizers.set(m));
   }
 
   displayMemorizer(s: Student): string {
@@ -323,11 +316,6 @@ export class StudentsComponent implements OnInit {
     }));
   }
 
-  onMemorizerChange(id: string): void {
-    const m = this.memorizers().find(x => x.id === id);
-    if (m) this.form.patchValue({ memorizerName: m.name });
-  }
-
   openForm(s?: Student): void {
     this.formError.set('');
     if (s) {
@@ -338,7 +326,6 @@ export class StudentsComponent implements OnInit {
         birthDate: firestoreToDate(s.birthDate),
         parentPhone: s.parentPhone,
         alternatePhone: s.alternatePhone ?? '',
-        memorizerId: s.memorizerId ?? s.sheikhId ?? '',
         memorizerName: s.memorizerName ?? s.sheikhName ?? '',
         juzCount: s.juzCount,
         previousLevel: s.previousLevel ?? '',
@@ -354,14 +341,18 @@ export class StudentsComponent implements OnInit {
 
   private buildPayload() {
     const v = this.form.value;
+    // memorizerId mirrors the typed name (slug-equivalent identity) —
+    // it is NOT a foreign key into any predefined list. See register.component.ts
+    // for the same rationale on the public side.
+    const memorizerName = v.memorizerName!.trim();
     return {
       fullName: v.fullName!,
       birthPlace: v.birthPlace!,
       birthDate: v.birthDate!,
       parentPhone: v.parentPhone!,
       alternatePhone: v.alternatePhone ?? '',
-      memorizerId: v.memorizerId!,
-      memorizerName: v.memorizerName!,
+      memorizerId: memorizerName,
+      memorizerName: memorizerName,
       juzCount: v.juzCount!,
       previousLevel: v.previousLevel!,
       category: categoryFromJuz(v.juzCount!) as CompetitionCategory,

@@ -5,7 +5,7 @@ import {
   orderBy, serverTimestamp,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { Student, StudentStatus } from '../models';
+import { Student, StudentStatus, CompetitionCategory } from '../models';
 import { CompetitionService } from './competition.service';
 
 export type StudentCreate = Omit<
@@ -46,6 +46,20 @@ export class StudentService {
       query(this.col(compId), where('sessionId', '==', sessionId)),
       { idField: 'id' },
     ) as Observable<Student[]>;
+  }
+
+  /**
+   * Students not yet assigned to any session, optionally filtered by category.
+   * Used by the session "assign students" screen.
+   * Note: Firestore can't query "field == null" reliably alongside other
+   * filters in all SDK versions, so we filter status==pending (which is
+   * the state every unassigned student is in) and refine client-side.
+   */
+  getUnassigned(compId: string, category?: CompetitionCategory): Observable<Student[]> {
+    const base = category
+      ? query(this.col(compId), where('status', '==', 'pending'), where('category', '==', category))
+      : query(this.col(compId), where('status', '==', 'pending'));
+    return collectionData(base, { idField: 'id' }) as Observable<Student[]>;
   }
 
   getById(compId: string, studentId: string): Observable<Student | undefined> {
