@@ -4,7 +4,7 @@ import {
   addDoc, updateDoc, query, where, orderBy, serverTimestamp, getDocs, writeBatch,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { Score, ScoreBreakdown, SCORE_MAX } from '../models';
+import { Score, ScoreBreakdown, SCORE_MAX, EvaluationSystem } from '../models';
 import { StudentService } from './student.service';
 import { SheikhService } from './sheikh.service';
 import { CompetitionService } from './competition.service';
@@ -54,32 +54,63 @@ export class ScoreService {
     return 'ضعيف';
   }
 
-  async submit(
-    compId: string,
-    studentId:   string,
-    studentName: string,
-    sessionId:   string,
-    sheikhId:    string,
-    breakdown:   ScoreBreakdown,
-    notes:       string,
-    submittedBy: string,
-  ): Promise<void> {
-    const total = this.calcTotal(breakdown);
+  /**
+   * حفظ تقييم متسابق — يدعم نظامي التقييم:
+   *  - legacy: breakdown (حفظ/تجويد/أداء/وقف) ويُجمع في total.
+   *  - questions10: 10 أسئلة كل منها 0..10 ويُجمع في total.
+   * التجويد المنفصل (tajweedScore) للتكريم فقط وخارج المجموع.
+   */
+  async submit(input: {
+    compId: string;
+    studentId: string;
+    studentName: string;
+    sessionId: string;
+    sheikhId: string;
+    notes: string;
+    submittedBy: string;
+    system: EvaluationSystem;
+    breakdown?: ScoreBreakdown;
+    questions?: number[];
+    tajweedScore?: number;
+  }): Promise<void> {
+    const { compId, studentId, studentName, sessionId, sheikhId, notes, submittedBy, system } = input;
 
-    if (breakdown.hifz    > SCORE_MAX.hifz    ||
-        breakdown.tajweed > SCORE_MAX.tajweed  ||
-        breakdown.ada     > SCORE_MAX.ada      ||
-        breakdown.waqf    > SCORE_MAX.waqf) {
-      throw new Error('الدرجات تتجاوز الحد الأقصى المسموح به');
-    }
-
-    await addDoc(this.col(compId), {
-      studentId, studentName, sessionId, sheikhId,
-      breakdown, total, notes,
+    const data: Record<string, unknown> = {
+      studentId, studentName, sessionId, sheikhId, notes, system,
       isPublished: false,
       submittedAt: serverTimestamp(),
       submittedBy,
-    });
+    };
+
+    let total: number;
+    if (system === 'questions10') {
+      const q = input.questions ?? [];
+      if (q.length !== 10 || q.some(n => !Number.isInteger(n) || n < 0 || n > 10)) {
+        throw new Error('يجب إدخال 10 أسئلة، كل سؤال من 0 إلى 10');
+      }
+      total = q.reduce((a, b) => a + b, 0);
+      data['questions'] = q;
+    } else {
+      const b = input.breakdown!;
+      if (b.hifz    > SCORE_MAX.hifz    ||
+          b.tajweed > SCORE_MAX.tajweed ||
+          b.ada     > SCORE_MAX.ada     ||
+          b.waqf    > SCORE_MAX.waqf) {
+        throw new Error('الدرجات تتجاوز الحد الأقصى المسموح به');
+      }
+      total = this.calcTotal(b);
+      data['breakdown'] = b;
+    }
+
+    if (input.tajweedScore != null) {
+      if (input.tajweedScore < 0 || input.tajweedScore > 10) {
+        throw new Error('درجة التجويد يجب أن تكون من 0 إلى 10');
+      }
+      data['tajweedScore'] = input.tajweedScore;
+    }
+
+    data['total'] = total;
+    await addDoc(this.col(compId), data);
 
     await this.studentSvc.updateStatus(compId, studentId, 'evaluated');
     await this.sheikhSvc.incrementEvaluated(sheikhId);

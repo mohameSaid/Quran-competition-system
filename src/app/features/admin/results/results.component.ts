@@ -68,6 +68,7 @@ import { Score } from '../../../core/models';
                 <th style="text-align:center">التجويد/30</th>
                 <th style="text-align:center">الأداء/20</th>
                 <th style="text-align:center">الوقف/10</th>
+                <th style="text-align:center">تجويد (تكريم)</th>
                 <th style="text-align:center">المجموع</th>
                 <th>التقدير</th>
                 <th>الحالة</th>
@@ -81,11 +82,15 @@ import { Score } from '../../../core/models';
                       <app-medal [rank]="i + 1" />
                     </div>
                   </td>
-                  <td><strong>{{ s.studentName }}</strong></td>
-                  <td style="text-align:center;font-weight:600">{{ s.breakdown.hifz }}</td>
-                  <td style="text-align:center;font-weight:600">{{ s.breakdown.tajweed }}</td>
-                  <td style="text-align:center;font-weight:600">{{ s.breakdown.ada }}</td>
-                  <td style="text-align:center;font-weight:600">{{ s.breakdown.waqf }}</td>
+                  <td>
+                    <strong>{{ s.studentName }}</strong>
+                    @if (s.system === 'questions10') { <span style="font-size:10px;color:var(--text-muted);background:rgba(212,168,67,.12);padding:1px 6px;border-radius:8px;margin-right:5px">10 أسئلة</span> }
+                  </td>
+                  <td style="text-align:center;font-weight:600">{{ s.breakdown?.hifz ?? '—' }}</td>
+                  <td style="text-align:center;font-weight:600">{{ s.breakdown?.tajweed ?? '—' }}</td>
+                  <td style="text-align:center;font-weight:600">{{ s.breakdown?.ada ?? '—' }}</td>
+                  <td style="text-align:center;font-weight:600">{{ s.breakdown?.waqf ?? '—' }}</td>
+                  <td style="text-align:center;font-weight:600;color:var(--blue,#4a90d9)">{{ s.tajweedScore ?? '—' }}</td>
                   <td style="text-align:center">
                     <strong style="font-size:17px;color:var(--gold-light)">{{ s.total }}</strong>
                   </td>

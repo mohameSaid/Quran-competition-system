@@ -1,6 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { take } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -16,7 +18,7 @@ import { Student, ExamSession } from '../../../core/models';
 @Component({
   selector: 'app-queue',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, LoadingSpinnerComponent, EmptyStateComponent, CategoryLabelPipe],
+  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule, LoadingSpinnerComponent, EmptyStateComponent, CategoryLabelPipe],
   template: `
     <div class="page-wrap">
       <!-- Welcome -->
@@ -34,6 +36,16 @@ import { Student, ExamSession } from '../../../core/models';
         <div class="stat-card stat-card--gold"><div class="stat-card__label">في الانتظار</div><div class="stat-card__value">{{ waiting().length }}</div></div>
         <div class="stat-card stat-card--green"><div class="stat-card__label">مكتملون اليوم</div><div class="stat-card__value">{{ done().length }}</div></div>
         <div class="stat-card stat-card--blue"><div class="stat-card__label">إجمالي الجلسة</div><div class="stat-card__value">{{ students().length }}</div></div>
+      </div>
+
+      <!-- اختيار مباشر بالرقم القومي -->
+      <div class="nid-search">
+        <mat-icon>badge</mat-icon>
+        <input class="nid-input" [(ngModel)]="searchNid" dir="ltr" maxlength="14" inputmode="numeric"
+               placeholder="بحث مباشر بالرقم القومي (14 رقماً)" (keyup.enter)="lookupByNid()" />
+        <button mat-flat-button class="btn-gold" (click)="lookupByNid()" [disabled]="searching()">
+          <mat-icon>search</mat-icon> فتح التقييم
+        </button>
       </div>
 
       <div class="queue-layout">
@@ -117,6 +129,9 @@ import { Student, ExamSession } from '../../../core/models';
   `,
   styles: [`
     .welcome-bar { display:flex;align-items:center;gap:13px;padding:15px 18px;background:var(--bg-card);border:1px solid rgba(212,168,67,.3);border-radius:var(--r-md);margin-bottom:20px; }
+    .nid-search { display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-card);border:1px solid var(--border-primary);border-radius:var(--r-md);margin-bottom:16px;
+      mat-icon{color:var(--text-muted);} }
+    .nid-input { flex:1;background:var(--bg-secondary);border:1.5px solid var(--border-primary);border-radius:30px;padding:9px 16px;color:var(--text-primary);font-family:'Cairo',sans-serif;font-size:14px;outline:none;&:focus{border-color:var(--gold);} }
     .w-av        { width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#0a0f1a;flex-shrink:0; }
     .ready-chip  { display:flex;align-items:center;gap:6px;margin-right:auto;padding:6px 13px;background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--green); }
     .queue-layout{ display:grid;grid-template-columns:1fr 340px;gap:16px; }
@@ -147,6 +162,8 @@ export class QueueComponent implements OnInit {
   loading      = signal(true);
   calledId     = signal<string | null>(null);
   todaySession = signal<ExamSession | null>(null);
+  searchNid    = '';
+  searching    = signal(false);
   today        = new Date().toLocaleDateString('ar-SA', { weekday:'long', day:'numeric', month:'long' });
 
   waiting() { return this.students().filter(s => s.status !== 'evaluated' && s.status !== 'published'); }
@@ -181,6 +198,31 @@ export class QueueComponent implements OnInit {
   }
 
   call(s: Student): void { this.calledId.set(s.id); }
+
+  /** فتح تقييم متسابق مباشرةً بالرقم القومي (للمحكّم) — يتجاوز قائمة الجلسة */
+  lookupByNid(): void {
+    const id = this.searchNid.trim();
+    if (!/^\d{14}$/.test(id)) {
+      this.snack.open('أدخل رقماً قومياً صحيحاً (14 رقماً)', '', { duration: 3000 });
+      return;
+    }
+    this.searching.set(true);
+    this.studentSvc.getByNationalId(this.compId, id).pipe(take(1)).subscribe({
+      next: (list) => {
+        this.searching.set(false);
+        const found = list[0];
+        if (!found) {
+          this.snack.open('لم يُعثر على متسابق بهذا الرقم القومي', '', { duration: 3500 });
+          return;
+        }
+        this.router.navigate(['/sheikh/scoring', found.id]);
+      },
+      error: () => {
+        this.searching.set(false);
+        this.snack.open('تعذّر البحث، حاول مرة أخرى', '', { duration: 3500 });
+      },
+    });
+  }
 
   startScoring(): void {
     if (this.calledId()) this.router.navigate(['/sheikh/scoring', this.calledId()]);

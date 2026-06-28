@@ -62,6 +62,14 @@ export class StudentService {
     return collectionData(base, { idField: 'id' }) as Observable<Student[]>;
   }
 
+  /** البحث عن متسابق بالرقم القومي — يستخدمه المحكّم للوصول المباشر */
+  getByNationalId(compId: string, nationalId: string): Observable<Student[]> {
+    return collectionData(
+      query(this.col(compId), where('nationalId', '==', nationalId)),
+      { idField: 'id' },
+    ) as Observable<Student[]>;
+  }
+
   getById(compId: string, studentId: string): Observable<Student | undefined> {
     return docData(
       doc(this.fs, `competitions/${compId}/students/${studentId}`),

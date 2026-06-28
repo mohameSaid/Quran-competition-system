@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -14,6 +14,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../../core/services/student.service';
 import { CompetitionService } from '../../../core/services/competition.service';
+import { PreviousParticipationService } from '../../../core/services/previous-participation.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -21,10 +22,11 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
 import { Student, CATEGORY_LABELS, JUZ_OPTIONS, CompetitionCategory } from '../../../core/models';
+import { buildStudentForm } from '../../../core/forms/student-form';
 import {
-  requiredEgyptMobileValidator,
-  optionalEgyptMobileValidator,
   categoryFromJuz,
+  parseBirthDateFromNationalId,
+  levelConsistencyValidator,
   PREVIOUS_LEVEL_OPTIONS,
   formatEgyptDate,
 } from '../../../core/validators/egypt.validators';
@@ -130,20 +132,33 @@ import { firestoreToDate } from '../../../core/utils/firestore-date.util';
             <form [formGroup]="form" (ngSubmit)="save()">
               <p class="section-label">البيانات الشخصية</p>
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>اسم المتسابق *</mat-label>
-                <input matInput formControlName="fullName">
-                @if (form.get('fullName')?.invalid && form.get('fullName')?.touched) {
+                <mat-label>اسم المتسابق (رباعي) *</mat-label>
+                <input matInput formControlName="fullName" placeholder="الاسم كما في الرقم القومي">
+                @if (form.get('fullName')?.hasError('required') && form.get('fullName')?.touched) {
                   <mat-error>هذا الحقل مطلوب</mat-error>
+                } @else if (form.get('fullName')?.hasError('minWords') && form.get('fullName')?.touched) {
+                  <mat-error>يجب إدخال الاسم رباعياً على الأقل</mat-error>
                 }
               </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>الرقم القومي *</mat-label>
+                <input matInput formControlName="nationalId" type="tel" dir="ltr" maxlength="14" inputmode="numeric">
+                <mat-hint>يُستخرج تاريخ الميلاد تلقائياً من الرقم القومي</mat-hint>
+                @if (form.get('nationalId')?.hasError('required') && form.get('nationalId')?.touched) {
+                  <mat-error>هذا الحقل مطلوب</mat-error>
+                } @else if (form.get('nationalId')?.hasError('nationalId') && form.get('nationalId')?.touched) {
+                  <mat-error>الرقم القومي غير صحيح</mat-error>
+                }
+              </mat-form-field>
+              @if (derivedBirthDate()) {
+                <p class="derived-birth"><mat-icon>cake</mat-icon> تاريخ الميلاد المستخرج: <strong>{{ derivedBirthDate() | date:'longDate':'':'ar-EG' }}</strong></p>
+              }
               <div class="form-grid-2">
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>تاريخ الميلاد *</mat-label>
-                  <input matInput [matDatepicker]="adminBirthPicker" formControlName="birthDate">
-                  <mat-datepicker-toggle matIconSuffix [for]="adminBirthPicker" />
-                  <mat-datepicker #adminBirthPicker />
-                  @if (form.get('birthDate')?.invalid && form.get('birthDate')?.touched) {
-                    <mat-error>يجب اختيار تاريخ الميلاد</mat-error>
+                  <mat-label>اسم الأم *</mat-label>
+                  <input matInput formControlName="motherName">
+                  @if (form.get('motherName')?.invalid && form.get('motherName')?.touched) {
+                    <mat-error>هذا الحقل مطلوب</mat-error>
                   }
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="full-width">
@@ -197,17 +212,36 @@ import { firestoreToDate } from '../../../core/utils/firestore-date.util';
                   }
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>المستوى السابق في آخر مسابقة *</mat-label>
-                  <mat-select formControlName="previousLevel">
-                    @for (lvl of previousLevels; track lvl) {
-                      <mat-option [value]="lvl">{{ lvl }}</mat-option>
+                  <mat-label>المستوى المتقدَّم له *</mat-label>
+                  <mat-select formControlName="category">
+                    @for (k of categoryKeys; track k) {
+                      <mat-option [value]="k">{{ categoryLabels[k] }}</mat-option>
                     }
                   </mat-select>
-                  @if (form.get('previousLevel')?.invalid && form.get('previousLevel')?.touched) {
-                    <mat-error>يجب اختيار قيمة</mat-error>
+                  @if (form.get('category')?.invalid && form.get('category')?.touched) {
+                    <mat-error>يجب اختيار المستوى</mat-error>
                   }
                 </mat-form-field>
               </div>
+              @if (previousInfo()) {
+                <p class="prev-info"><mat-icon>history</mat-icon> {{ previousInfo() }}</p>
+              }
+              @if (form.hasError('levelTooLow')) {
+                <p class="level-warn"><mat-icon>warning</mat-icon> المستوى المختار أقل من المسموح به وفقاً لعدد الأجزاء أو المستوى السابق.</p>
+              } @else if (form.hasError('levelTooHigh')) {
+                <p class="level-warn"><mat-icon>warning</mat-icon> المستوى المختار أعلى من المسموح به وفقاً لعدد الأجزاء المحفوظة.</p>
+              }
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>المستوى السابق في آخر مسابقة *</mat-label>
+                <mat-select formControlName="previousLevel">
+                  @for (lvl of previousLevels; track lvl) {
+                    <mat-option [value]="lvl">{{ lvl }}</mat-option>
+                  }
+                </mat-select>
+                @if (form.get('previousLevel')?.invalid && form.get('previousLevel')?.touched) {
+                  <mat-error>يجب اختيار قيمة</mat-error>
+                }
+              </mat-form-field>
 
               @if (formError()) {
                 <div class="error-box"><mat-icon>error_outline</mat-icon> {{ formError() }}</div>
@@ -241,6 +275,9 @@ import { firestoreToDate } from '../../../core/utils/firestore-date.util';
     .student-card__actions { display:flex;gap:2px; }
     .no-results { text-align:center;padding:36px;color:var(--text-muted); }
     .section-label { font-size:13px;font-weight:700;color:var(--primary);margin:12px 0 8px;&:first-of-type{margin-top:0;} }
+    .derived-birth { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--accent,#2e7d32);margin:0 0 8px; mat-icon{font-size:17px;width:17px;height:17px;} }
+    .level-warn { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--red);margin:0 0 8px; mat-icon{font-size:17px;width:17px;height:17px;} }
+    .prev-info { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--blue,#4a90d9);margin:0 0 8px; mat-icon{font-size:17px;width:17px;height:17px;} }
     .error-box { display:flex;align-items:center;gap:7px;padding:9px 13px;background:rgba(232,85,85,.12);border:1px solid rgba(232,85,85,.3);border-radius:var(--r-sm);color:var(--red);font-size:13px;margin:8px 0; }
     .form-overlay { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px; }
     .form-sheet { background:var(--bg-card);border:1px solid var(--border-accent);border-radius:var(--r-xl);padding:28px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto; }
@@ -252,6 +289,7 @@ import { firestoreToDate } from '../../../core/utils/firestore-date.util';
 export class StudentsComponent implements OnInit {
   private studentSvc     = inject(StudentService);
   private competitionSvc = inject(CompetitionService);
+  private prevSvc        = inject(PreviousParticipationService);
   private exportSvc      = inject(ExportService);
   private auth           = inject(AuthService);
   private dialog         = inject(MatDialog);
@@ -272,21 +310,20 @@ export class StudentsComponent implements OnInit {
   statusFilter = '';
 
   categoryOptions = Object.entries(CATEGORY_LABELS).map(([key, label]) => ({ key, label }));
+  categoryLabels  = CATEGORY_LABELS;
+  categoryKeys: CompetitionCategory[] = ['five5', 'ten10', 'half15', 'full30'];
   juzOptions      = JUZ_OPTIONS;
   previousLevels  = PREVIOUS_LEVEL_OPTIONS;
   formatDate      = formatEgyptDate;
 
-  form = this.fb.group({
-    fullName:       ['', [Validators.required, Validators.minLength(4)]],
-    birthPlace:     ['', Validators.required],
-    birthDate:      [null as Date | null, Validators.required],
-    parentPhone:    ['', requiredEgyptMobileValidator()],
-    alternatePhone: ['', optionalEgyptMobileValidator()],
-    // Free text, same as the public register form — see register.component.ts
-    memorizerName:  ['', [Validators.required, Validators.minLength(2)]],
-    juzCount:       [null as number | null, Validators.required],
-    previousLevel:  ['', Validators.required],
-  });
+  /** تاريخ الميلاد المُستخرج من الرقم القومي — للعرض فقط */
+  derivedBirthDate = signal<Date | null>(null);
+
+  /** نتيجة الربط بالمسابقات السابقة (آخر مستوى أتمّه) — للعرض والتحقق */
+  previousInfo = signal<string | null>(null);
+  private lastLookupKey = '';
+
+  form = buildStudentForm(this.fb);
 
   get compId(): string {
     try { return this.competitionSvc.requireActiveCompetition(); }
@@ -297,6 +334,39 @@ export class StudentsComponent implements OnInit {
     this.studentSvc.getAll(this.compId).subscribe(list => {
       this.all.set(list); this.applyFilter(); this.loading.set(false);
     });
+    this.form.controls.nationalId.valueChanges.subscribe((id) => {
+      this.derivedBirthDate.set(parseBirthDateFromNationalId(id ?? ''));
+      this.maybeLinkPrevious();
+    });
+    this.form.controls.fullName.valueChanges.subscribe(() => this.maybeLinkPrevious());
+    this.form.controls.juzCount.valueChanges.subscribe((j) => {
+      if (j) this.form.controls.category.setValue(categoryFromJuz(j));
+    });
+  }
+
+  /**
+   * الربط بالمسابقات السابقة (عند تفعيله من الإعدادات):
+   * يبحث بالاسم + تاريخ الميلاد المُستخرج، ويضبط حدّاً أدنى للمستوى (مساوٍ أو أعلى).
+   */
+  private async maybeLinkPrevious(): Promise<void> {
+    if (!this.competitionSvc.active()?.previousLinkingEnabled) return;
+    const name = (this.form.controls.fullName.value ?? '').trim();
+    const bd = this.derivedBirthDate();
+    if (name.split(/\s+/).filter(Boolean).length < 4 || !bd) return;
+    const key = `${name}|${bd.toISOString().slice(0, 10)}`;
+    if (key === this.lastLookupKey) return;
+    this.lastLookupKey = key;
+
+    const match = await this.prevSvc.lookup(name, bd);
+    const floorRank = match?.rank ?? 0;
+    this.previousInfo.set(
+      match
+        ? `آخر مستوى سابق: ${match.record.level || '—'} — لا يمكن التقديم بمستوى أقل منه`
+        : null,
+    );
+    // إعادة ضبط مُحقِّق اتساق المستوى بالحدّ الأدنى الجديد
+    this.form.setValidators(levelConsistencyValidator(floorRank));
+    this.form.updateValueAndValidity({ emitEvent: false });
   }
 
   displayMemorizer(s: Student): string {
@@ -307,7 +377,7 @@ export class StudentsComponent implements OnInit {
     const q = this.searchQ.trim();
     this.filtered.set(this.all().filter(s => {
       const haystack = [
-        s.fullName, s.parentPhone, s.alternatePhone, s.birthPlace,
+        s.fullName, s.nationalId, s.motherName, s.parentPhone, s.alternatePhone, s.birthPlace,
         this.displayMemorizer(s),
       ].join(' ');
       return (!q || haystack.includes(q)) &&
@@ -318,21 +388,28 @@ export class StudentsComponent implements OnInit {
 
   openForm(s?: Student): void {
     this.formError.set('');
+    this.previousInfo.set(null);
+    this.lastLookupKey = '';
+    this.form.setValidators(levelConsistencyValidator(0));
     if (s) {
       this.editingId.set(s.id);
       this.form.patchValue({
         fullName: s.fullName,
+        nationalId: s.nationalId ?? '',
+        motherName: s.motherName ?? '',
         birthPlace: s.birthPlace ?? '',
-        birthDate: firestoreToDate(s.birthDate),
         parentPhone: s.parentPhone,
         alternatePhone: s.alternatePhone ?? '',
         memorizerName: s.memorizerName ?? s.sheikhName ?? '',
         juzCount: s.juzCount,
         previousLevel: s.previousLevel ?? '',
+        category: s.category ?? '',
       });
+      this.derivedBirthDate.set(firestoreToDate(s.birthDate) ?? parseBirthDateFromNationalId(s.nationalId ?? ''));
     } else {
       this.editingId.set(null);
       this.form.reset();
+      this.derivedBirthDate.set(null);
     }
     this.showForm.set(true);
   }
@@ -345,17 +422,21 @@ export class StudentsComponent implements OnInit {
     // it is NOT a foreign key into any predefined list. See register.component.ts
     // for the same rationale on the public side.
     const memorizerName = v.memorizerName!.trim();
+    // تاريخ الميلاد يُشتق من الرقم القومي (التحقق يضمن صحته)
+    const birthDate = parseBirthDateFromNationalId(v.nationalId!)!;
     return {
       fullName: v.fullName!,
+      nationalId: v.nationalId!,
+      motherName: v.motherName!,
       birthPlace: v.birthPlace!,
-      birthDate: v.birthDate!,
+      birthDate,
       parentPhone: v.parentPhone!,
       alternatePhone: v.alternatePhone ?? '',
       memorizerId: memorizerName,
       memorizerName: memorizerName,
       juzCount: v.juzCount!,
       previousLevel: v.previousLevel!,
-      category: categoryFromJuz(v.juzCount!) as CompetitionCategory,
+      category: (v.category as CompetitionCategory) || categoryFromJuz(v.juzCount!),
     };
   }
 

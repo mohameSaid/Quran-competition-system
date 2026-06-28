@@ -28,6 +28,8 @@ export const routes: Routes = [
       { path: 'results',    loadComponent: () => import('./features/admin/results/results.component').then(m => m.ResultsComponent) },
       { path: 'reports',    loadComponent: () => import('./features/admin/reports/reports.component').then(m => m.ReportsComponent) },
       { path: 'settings',   loadComponent: () => import('./features/admin/settings/settings.component').then(m => m.SettingsComponent) },
+      { path: 'previous-data', loadComponent: () => import('./features/admin/previous-data/previous-data.component').then(m => m.PreviousDataComponent) },
+      { path: 'home-cms',   loadComponent: () => import('./features/admin/home-cms/home-cms.component').then(m => m.HomeCmsComponent) },
     ],
   },
   // ── Sheikh ───────────────────────────────────────────────────

@@ -42,16 +42,18 @@ export interface Memorizer {
 // ── Student (stored in /competitions/{cId}/students/{id}) ────
 export interface Student {
   id:             string;
-  fullName:       string;   // اسم المتسابق
+  fullName:       string;   // اسم المتسابق — رباعي على الأقل
+  nationalId:     string;   // الرقم القومي (14 رقم) — المصدر الأساسي، يُشتق منه تاريخ الميلاد
+  motherName:     string;   // اسم الأم (إجباري)
   birthPlace:     string;   // محل الميلاد الحالي
-  birthDate:      Date;
+  birthDate:      Date;     // مُشتق برمجياً من الرقم القومي
   parentPhone:    string;   // رقم هاتف ولي الأمر
   alternatePhone: string;   // رقم هاتف آخر
-  memorizerId:    string;   // FK → /memorizers/{id}
-  memorizerName:  string;
+  memorizerId:    string;   // يطابق memorizerName (نص حر، ليس FK)
+  memorizerName:  string;   // اسم المحفّظ (نص حر)
   juzCount:       number;
   previousLevel:  string;   // المستوى السابق في آخر مسابقة
-  category:       CompetitionCategory;
+  category:       CompetitionCategory;   // يختاره المتسابق صراحةً (مع التحقق مقابل عدد الأجزاء)
   status:         StudentStatus;
   sessionId?:     string;
   competitionId:  string;
@@ -59,13 +61,16 @@ export interface Student {
   createdAt:      Date;
   updatedAt:      Date;
   /** @deprecated legacy records */
-  nationalId?:    string;
   age?:           number;
   sheikhId?:      string;
   sheikhName?:    string;
 }
 
 // ── Score (stored in /competitions/{cId}/scores/{id}) ────────
+
+/** نظام التقييم الفعّال — قابل للتبديل من إعدادات المسابقة */
+export type EvaluationSystem = 'legacy' | 'questions10';
+
 export interface ScoreBreakdown {
   hifz:    number;  // /40
   tajweed: number;  // /30
@@ -78,12 +83,36 @@ export interface Score {
   studentName: string;   // denormalised
   sessionId:   string;
   sheikhId:    string;
-  breakdown:   ScoreBreakdown;
+  /** present in legacy system only; absent for questions10 scores */
+  breakdown?:  ScoreBreakdown;
   total:       number;
   notes:       string;
   isPublished: boolean;
   submittedAt: Date;
   submittedBy: string;
+  /** undefined ⇒ legacy (old records). 'questions10' ⇒ uses `questions`. */
+  system?:        EvaluationSystem;
+  /** questions10 only — 10 integers, each /10, summed into `total` */
+  questions?:     number[];
+  /** التجويد — للتكريم فقط، خارج المجموع الأساسي (/10) */
+  tajweedScore?:  number;
+}
+
+// ── Evaluation config (derived at runtime from competition settings) ──
+export interface EvaluationCriterion {
+  key:    string;   // hifz | tajweed | ada | waqf | q1..q10
+  label:  string;
+  max:    number;
+  desc?:  string;
+  color?: string;
+}
+export interface EvaluationConfig {
+  system:   EvaluationSystem;
+  criteria: EvaluationCriterion[];   // الأبواب التي تُجمع في المجموع
+  maxTotal: number;                  // 100
+  /** التجويد المنفصل (تكريم فقط) — خارج المجموع */
+  tajweed:  { enabled: boolean; required: boolean; max: number };
+  waqfEnabled: boolean;              // معطّل مؤقتاً
 }
 
 // ── Session (stored in /competitions/{cId}/sessions/{id}) ────
@@ -120,6 +149,54 @@ export interface Competition {
   resultsDate:        Date;
   ceremonyDate:       Date;
   createdAt:          Date;
+
+  // ── Dynamic settings (إعدادات المسابقة) — additive, defaulted on read ──
+  /** نظام التقييم الفعّال (افتراضي: questions10) */
+  evaluationSystem?:        EvaluationSystem;
+  /** تفعيل تقييم التجويد */
+  tajweedEnabled?:          boolean;
+  /** التجويد إجباري فقط في مستوى ختم القرآن (full30) */
+  tajweedRequiredAtKhatm?:  boolean;
+  /** الربط مع بيانات المسابقات السابقة */
+  previousLinkingEnabled?:  boolean;
+  /** أنواع الاختبارات المتاحة */
+  examTypes?:               string[];
+}
+
+/** القيم الافتراضية للإعدادات الديناميكية (عند غياب الحقل على الوثيقة) */
+export const DEFAULT_COMPETITION_SETTINGS = {
+  evaluationSystem:       'questions10' as EvaluationSystem,
+  tajweedEnabled:         true,
+  tajweedRequiredAtKhatm: true,
+  previousLinkingEnabled: false,
+  examTypes:              [] as string[],
+};
+
+// ── Home page CMS content (/siteContent/home) ────────────────
+export interface HeroStat    { label: string; value: string; }
+export interface NewsItem    { id: string; title: string; body: string; date: Date | null; image?: string; tag?: string; }
+export interface FigureItem  { id: string; name: string; role: string; photo?: string; }
+export interface ServiceItem { id: string; title: string; desc: string; icon?: string; }
+export interface ObituaryItem{ id: string; name: string; text: string; date: Date | null; }
+export interface HomeContent {
+  heroStats:  HeroStat[];
+  news:       NewsItem[];
+  figures:    FigureItem[];
+  services:   ServiceItem[];
+  obituaries: ObituaryItem[];
+}
+
+// ── Previous-competition participation (/previousParticipations/{id}) ──
+export interface PreviousParticipation {
+  id?:            string;
+  name:           string;
+  birthDate:      Date | null;
+  mobileNumbers:  string[];
+  studyGrade:     string;
+  memorizerName:  string;
+  memorizedParts: string;
+  level:          string;
+  notes:          string | null;
 }
 
 // ── Audit log — removed (cost/performance)
@@ -135,3 +212,13 @@ export const CATEGORY_LABELS: Record<CompetitionCategory, string> = {
 export const SCORE_MAX: ScoreBreakdown = { hifz: 40, tajweed: 30, ada: 20, waqf: 10 };
 
 export const JUZ_OPTIONS = Array.from({ length: 30 }, (_, i) => i + 1);
+
+/** ترتيب المستويات تصاعدياً — يُستخدم لقاعدة "مساوٍ أو أعلى" في اختيار المستوى */
+export const CATEGORY_RANK: Record<CompetitionCategory, number> = {
+  five5: 1, ten10: 2, half15: 3, full30: 4,
+};
+
+/** أدنى عدد أجزاء مطلوب لكل مستوى — للتحقق من اتساق المستوى مع الحفظ */
+export const CATEGORY_MIN_JUZ: Record<CompetitionCategory, number> = {
+  five5: 5, ten10: 10, half15: 15, full30: 30,
+};

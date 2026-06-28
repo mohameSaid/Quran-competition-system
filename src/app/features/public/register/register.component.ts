@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
@@ -12,11 +12,11 @@ import { MatCardModule } from "@angular/material/card";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { StudentService } from "../../../core/services/student.service";
 import { CompetitionService } from "../../../core/services/competition.service";
-import { JUZ_OPTIONS } from "../../../core/models";
+import { JUZ_OPTIONS, CATEGORY_LABELS, CompetitionCategory } from "../../../core/models";
+import { buildStudentForm } from "../../../core/forms/student-form";
 import {
-  requiredEgyptMobileValidator,
-  optionalEgyptMobileValidator,
   categoryFromJuz,
+  parseBirthDateFromNationalId,
   PREVIOUS_LEVEL_OPTIONS,
 } from "../../../core/validators/egypt.validators";
 
@@ -92,21 +92,41 @@ import {
             <mat-card-content>
               <div class="fields">
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>اسم المتسابق *</mat-label>
-                  <input matInput formControlName="fullName" />
-                  @if (f.fullName.invalid && f.fullName.touched) {
+                  <mat-label>اسم المتسابق (رباعي) *</mat-label>
+                  <input matInput formControlName="fullName" placeholder="الاسم كما في شهادة الميلاد / الرقم القومي" />
+                  <mat-hint>اكتب الاسم رباعياً على الأقل</mat-hint>
+                  @if (f.fullName.hasError('required') && f.fullName.touched) {
                     <mat-error>هذا الحقل مطلوب</mat-error>
+                  } @else if (f.fullName.hasError('minWords') && f.fullName.touched) {
+                    <mat-error>يجب إدخال الاسم رباعياً على الأقل</mat-error>
                   }
                 </mat-form-field>
 
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>الرقم القومي *</mat-label>
+                  <input matInput formControlName="nationalId" type="tel" dir="ltr" maxlength="14"
+                         inputmode="numeric" placeholder="14 رقماً" />
+                  <mat-hint>يُستخرج تاريخ الميلاد تلقائياً من الرقم القومي</mat-hint>
+                  @if (f.nationalId.hasError('required') && f.nationalId.touched) {
+                    <mat-error>هذا الحقل مطلوب</mat-error>
+                  } @else if (f.nationalId.hasError('nationalId') && f.nationalId.touched) {
+                    <mat-error>الرقم القومي غير صحيح</mat-error>
+                  }
+                </mat-form-field>
+
+                @if (derivedBirthDate()) {
+                  <p class="derived-birth">
+                    <mat-icon>cake</mat-icon>
+                    تاريخ الميلاد المستخرج: <strong>{{ derivedBirthDate() | date:'longDate':'':'ar-EG' }}</strong>
+                  </p>
+                }
+
                 <div class="form-grid-2">
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>تاريخ الميلاد *</mat-label>
-                    <input matInput [matDatepicker]="birthPicker" formControlName="birthDate" />
-                    <mat-datepicker-toggle matIconSuffix [for]="birthPicker" />
-                    <mat-datepicker #birthPicker />
-                    @if (f.birthDate.invalid && f.birthDate.touched) {
-                      <mat-error>يجب اختيار تاريخ الميلاد</mat-error>
+                    <mat-label>اسم الأم *</mat-label>
+                    <input matInput formControlName="motherName" />
+                    @if (f.motherName.invalid && f.motherName.touched) {
+                      <mat-error>هذا الحقل مطلوب</mat-error>
                     }
                   </mat-form-field>
 
@@ -183,17 +203,35 @@ import {
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>المستوى السابق في آخر مسابقة *</mat-label>
-                    <mat-select formControlName="previousLevel">
-                      @for (lvl of previousLevels; track lvl) {
-                        <mat-option [value]="lvl">{{ lvl }}</mat-option>
+                    <mat-label>المستوى المتقدَّم له *</mat-label>
+                    <mat-select formControlName="category">
+                      @for (k of categoryKeys; track k) {
+                        <mat-option [value]="k">{{ categoryLabels[k] }}</mat-option>
                       }
                     </mat-select>
-                    @if (f.previousLevel.invalid && f.previousLevel.touched) {
-                      <mat-error>يجب اختيار قيمة</mat-error>
+                    @if (f.category.invalid && f.category.touched) {
+                      <mat-error>يجب اختيار المستوى</mat-error>
                     }
                   </mat-form-field>
                 </div>
+
+                @if (form.hasError('levelTooLow') && f.category.touched) {
+                  <p class="level-warn"><mat-icon>warning</mat-icon> المستوى المختار أقل من المسموح به وفقاً لعدد الأجزاء أو لمستواك السابق.</p>
+                } @else if (form.hasError('levelTooHigh') && f.category.touched) {
+                  <p class="level-warn"><mat-icon>warning</mat-icon> المستوى المختار أعلى من المسموح به وفقاً لعدد الأجزاء المحفوظة.</p>
+                }
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>المستوى السابق في آخر مسابقة *</mat-label>
+                  <mat-select formControlName="previousLevel">
+                    @for (lvl of previousLevels; track lvl) {
+                      <mat-option [value]="lvl">{{ lvl }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (f.previousLevel.invalid && f.previousLevel.touched) {
+                    <mat-error>يجب اختيار قيمة</mat-error>
+                  }
+                </mat-form-field>
               </div>
             </mat-card-content>
           </mat-card>
@@ -277,6 +315,24 @@ import {
       }
       .full-width {
         width: 100%;
+      }
+      .derived-birth {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--accent, #2e7d32);
+        margin: 0 0 8px;
+        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+      }
+      .level-warn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--red, #e85555);
+        margin: 0 0 8px;
+        mat-icon { font-size: 18px; width: 18px; height: 18px; }
       }
       .error-box {
         display: flex;
@@ -364,20 +420,7 @@ export class RegisterComponent implements OnInit {
   private studentSvc = inject(StudentService);
   private competitionSvc = inject(CompetitionService);
 
-  form = this.fb.group({
-    fullName: ["", [Validators.required, Validators.minLength(4)]],
-    birthPlace: ["", Validators.required],
-    birthDate: [null as Date | null, Validators.required],
-    parentPhone: ["", requiredEgyptMobileValidator()],
-    alternatePhone: ["", optionalEgyptMobileValidator()],
-    // Free text — the memorizer's name as typed by the registrant.
-    // NOT a select, NOT linked to any predefined /memorizers collection.
-    // This is intentionally separate from Sheikh assignment, which
-    // happens later in the admin/session-assignment flow.
-    memorizerName: ["", [Validators.required, Validators.minLength(2)]],
-    juzCount: [null as number | null, Validators.required],
-    previousLevel: ["", Validators.required],
-  });
+  form = buildStudentForm(this.fb);
 
   get f() {
     return this.form.controls;
@@ -385,12 +428,17 @@ export class RegisterComponent implements OnInit {
 
   juzOptions = JUZ_OPTIONS;
   previousLevels = PREVIOUS_LEVEL_OPTIONS;
+  categoryLabels = CATEGORY_LABELS;
+  categoryKeys: CompetitionCategory[] = ['five5', 'ten10', 'half15', 'full30'];
 
   loading = signal(false);
   success = signal(false);
   regNumber = signal("");
   error = signal("");
   retrying = signal(false);
+
+  /** تاريخ الميلاد المُستخرج من الرقم القومي — يُعرض للتأكيد فقط */
+  derivedBirthDate = signal<Date | null>(null);
 
   /** Mirrors CompetitionService.status so the template can gate the whole form on it. */
   compStatus = this.competitionSvc.status;
@@ -408,6 +456,16 @@ export class RegisterComponent implements OnInit {
     if (this.compStatus() === 'loading') {
       this.competitionSvc.initActive().catch(() => void 0);
     }
+
+    // استخراج تاريخ الميلاد تلقائياً من الرقم القومي عند تغييره
+    this.f.nationalId.valueChanges.subscribe((id) => {
+      this.derivedBirthDate.set(parseBirthDateFromNationalId(id ?? ''));
+    });
+
+    // اقتراح المستوى الافتراضي من عدد الأجزاء (قابل للتعديل من المستخدم)
+    this.f.juzCount.valueChanges.subscribe((j) => {
+      if (j) this.f.category.setValue(categoryFromJuz(j));
+    });
   }
 
   async retryLoad(): Promise<void> {
@@ -444,23 +502,26 @@ export class RegisterComponent implements OnInit {
       const compId = this.competitionSvc.requireActiveCompetition();
       const v = this.form.value;
       // memorizerId is no longer a separate FK selection — it's free text.
-      // We keep the field populated (slugified) only so existing reports/
-      // filters that group by memorizerId keep working; memorizerName is
-      // the source of truth and is what's actually displayed everywhere.
+      // We keep the field populated only so existing reports/filters that
+      // group by memorizerId keep working; memorizerName is the source of truth.
       const memorizerName = v.memorizerName!.trim();
+      // تاريخ الميلاد يُشتق من الرقم القومي (التحقق يضمن صحته)
+      const birthDate = parseBirthDateFromNationalId(v.nationalId!)!;
       const id = await this.studentSvc.add(
         compId,
         {
           fullName: v.fullName!,
+          nationalId: v.nationalId!,
+          motherName: v.motherName!,
           birthPlace: v.birthPlace!,
-          birthDate: v.birthDate!,
+          birthDate,
           parentPhone: v.parentPhone!,
           alternatePhone: v.alternatePhone ?? "",
           memorizerId: memorizerName,
           memorizerName: memorizerName,
           juzCount: v.juzCount!,
           previousLevel: v.previousLevel!,
-          category: categoryFromJuz(v.juzCount!),
+          category: (v.category as CompetitionCategory) || categoryFromJuz(v.juzCount!),
           registeredBy: "public",
         },
         "public",

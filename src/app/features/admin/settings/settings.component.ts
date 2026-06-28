@@ -7,11 +7,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompetitionService } from '../../../core/services/competition.service';
-import { Competition, CompetitionCategory, CATEGORY_LABELS } from '../../../core/models';
+import {
+  Competition, CompetitionCategory, CATEGORY_LABELS,
+  DEFAULT_COMPETITION_SETTINGS, EvaluationSystem,
+} from '../../../core/models';
 
 /** Firestore returns Timestamp objects for date fields; normalize to JS Date for the pickers. */
 function toDate(v: unknown): Date | null {
@@ -31,7 +35,7 @@ const CATEGORY_KEYS: CompetitionCategory[] = ['full30', 'half15', 'ten10', 'five
   imports: [
     CommonModule, ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule,
-    MatCardModule, MatSlideToggleModule, MatDatepickerModule, MatProgressSpinnerModule,
+    MatCardModule, MatSlideToggleModule, MatSelectModule, MatDatepickerModule, MatProgressSpinnerModule,
   ],
   template: `
     <div class="page-wrap">
@@ -105,6 +109,34 @@ const CATEGORY_KEYS: CompetitionCategory[] = ['full30', 'half15', 'ten10', 'five
           </mat-card-content>
         </mat-card>
 
+        <!-- نظام التقييم والمزايا الديناميكية -->
+        <mat-card class="form-section">
+          <mat-card-header><mat-card-title>نظام التقييم والمزايا</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <div class="grid-2">
+              <mat-form-field appearance="outline">
+                <mat-label>نظام التقييم</mat-label>
+                <mat-select formControlName="evaluationSystem">
+                  <mat-option value="questions10">عشرة أسئلة × 10 (المجموع 100)</mat-option>
+                  <mat-option value="legacy">النظام القديم (حفظ/تجويد/أداء/وقف)</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="toggles">
+              <mat-slide-toggle formControlName="tajweedEnabled">تفعيل تقييم التجويد</mat-slide-toggle>
+              <mat-slide-toggle formControlName="tajweedRequiredAtKhatm">التجويد إجباري في ختم القرآن</mat-slide-toggle>
+              <mat-slide-toggle formControlName="previousLinkingEnabled">الربط بالمسابقات السابقة</mat-slide-toggle>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-row">
+              <mat-label>أنواع الاختبارات المتاحة</mat-label>
+              <input matInput formControlName="examTypesText" placeholder="افصل بينها بفاصلة، مثال: تحريري، شفهي" />
+              <mat-hint>اكتب الأنواع مفصولة بفواصل</mat-hint>
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+
         <button mat-flat-button type="submit" class="btn-gold save-btn"
                 [disabled]="form.invalid || saving()">
           @if (saving()) { <mat-spinner diameter="18" /> }
@@ -124,6 +156,7 @@ const CATEGORY_KEYS: CompetitionCategory[] = ['full30', 'half15', 'ten10', 'five
     @media (max-width:560px){ .grid-2 { grid-template-columns:1fr; } }
     .grid-2 mat-form-field { width:100%; }
     .toggles { display:flex; flex-wrap:wrap; gap:20px; margin-top:8px; }
+    .full-row { width:100%; margin-top:12px; }
     .info-box { display:flex; align-items:center; gap:8px; padding:12px 14px; margin-bottom:16px;
       background:var(--secondary); border:1px solid var(--border-primary); border-radius:var(--r-sm);
       color:var(--primary); font-size:14px; }
@@ -168,6 +201,12 @@ export class SettingsComponent implements OnInit {
     examEnd: [null as Date | null],
     resultsDate: [null as Date | null],
     ceremonyDate: [null as Date | null],
+    // إعدادات ديناميكية
+    evaluationSystem: [DEFAULT_COMPETITION_SETTINGS.evaluationSystem as EvaluationSystem],
+    tajweedEnabled: [DEFAULT_COMPETITION_SETTINGS.tajweedEnabled],
+    tajweedRequiredAtKhatm: [DEFAULT_COMPETITION_SETTINGS.tajweedRequiredAtKhatm],
+    previousLinkingEnabled: [DEFAULT_COMPETITION_SETTINGS.previousLinkingEnabled],
+    examTypesText: [''],
   });
 
   ngOnInit(): void {
@@ -192,6 +231,11 @@ export class SettingsComponent implements OnInit {
         examEnd: toDate(c.examEnd),
         resultsDate: toDate(c.resultsDate),
         ceremonyDate: toDate(c.ceremonyDate),
+        evaluationSystem: c.evaluationSystem ?? DEFAULT_COMPETITION_SETTINGS.evaluationSystem,
+        tajweedEnabled: c.tajweedEnabled ?? DEFAULT_COMPETITION_SETTINGS.tajweedEnabled,
+        tajweedRequiredAtKhatm: c.tajweedRequiredAtKhatm ?? DEFAULT_COMPETITION_SETTINGS.tajweedRequiredAtKhatm,
+        previousLinkingEnabled: c.previousLinkingEnabled ?? DEFAULT_COMPETITION_SETTINGS.previousLinkingEnabled,
+        examTypesText: (c.examTypes ?? []).join('، '),
       });
     }
   }
@@ -222,6 +266,12 @@ export class SettingsComponent implements OnInit {
         examEnd: v.examEnd ?? new Date(),
         resultsDate: v.resultsDate ?? new Date(),
         ceremonyDate: v.ceremonyDate ?? new Date(),
+        evaluationSystem: (v.evaluationSystem ?? DEFAULT_COMPETITION_SETTINGS.evaluationSystem) as EvaluationSystem,
+        tajweedEnabled: !!v.tajweedEnabled,
+        tajweedRequiredAtKhatm: !!v.tajweedRequiredAtKhatm,
+        previousLinkingEnabled: !!v.previousLinkingEnabled,
+        examTypes: (v.examTypesText ?? '')
+          .split(/[،,]/).map(s => s.trim()).filter(Boolean),
       } as Omit<Competition, 'id' | 'createdAt'>);
       this.hasCompetition.set(true);
       this.snack.open('تم حفظ إعدادات المسابقة', 'حسناً', { duration: 3000 });

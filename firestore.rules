@@ -46,6 +46,19 @@ service cloud.firestore {
       allow write:  if isAdmin();
     }
 
+    // ── Previous-competition data (بيانات المسابقات السابقة) ──
+    // تحوي أرقام هواتف — القراءة والكتابة للأدمن فقط.
+    match /previousParticipations/{id} {
+      allow read:   if isAdmin();
+      allow write:  if isAdmin();
+    }
+
+    // ── Home page CMS content (محتوى الصفحة الرئيسية) ─────────
+    match /siteContent/{docId} {
+      allow read:   if true;
+      allow write:  if isAdmin();
+    }
+
     // ── Competitions ─────────────────────────────────────────
     match /competitions/{compId} {
       allow read:  if true;

@@ -14,6 +14,8 @@ const NAV = [
   { icon:'leaderboard',         label:'النتائج',         route:'/admin/results'   },
   { icon:'assessment',          label:'التقارير',         route:'/admin/reports'   },
   { icon:'settings',            label:'إعدادات المسابقة', route:'/admin/settings'  },
+  { icon:'history',             label:'بيانات سابقة',     route:'/admin/previous-data' },
+  { icon:'web',                 label:'محتوى الصفحة',     route:'/admin/home-cms'  },
 ];
 
 @Component({

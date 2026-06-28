@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, Input } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,12 +9,11 @@ import { ScoreService } from '../../../core/services/score.service';
 import { StudentService } from '../../../core/services/student.service';
 import { CompetitionService } from '../../../core/services/competition.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { EvaluationConfigService } from '../../../core/services/evaluation-config.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { GradePipe } from '../../../shared/pipes/grade.pipe';
 import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
-import { Student, ScoreBreakdown, SCORE_MAX } from '../../../core/models';
-
-interface Criterion { key: keyof ScoreBreakdown; label: string; max: number; desc: string; color: string; }
+import { Student, ScoreBreakdown, EvaluationConfig, EvaluationCriterion } from '../../../core/models';
 
 @Component({
   selector: 'app-scoring',
@@ -63,14 +62,14 @@ interface Criterion { key: keyof ScoreBreakdown; label: string; max: number; des
 
             <!-- Mini bars -->
             <div style="width:100%;margin-top:12px;display:flex;flex-direction:column;gap:7px">
-              @for (c of criteria; track c.key) {
+              @for (c of criteria(); track c.key) {
                 <div>
                   <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:3px">
                     <span>{{ c.label }}</span>
-                    <span [style.color]="c.color">{{ scores[c.key] }}/{{ c.max }}</span>
+                    <span [style.color]="c.color">{{ scores()[c.key] }}/{{ c.max }}</span>
                   </div>
                   <div style="height:4px;background:var(--border-primary);border-radius:2px;overflow:hidden">
-                    <div [style.width.%]="scores[c.key]/c.max*100" [style.background]="c.color" style="height:100%;border-radius:2px;transition:width .3s"></div>
+                    <div [style.width.%]="(scores()[c.key]||0)/c.max*100" [style.background]="c.color" style="height:100%;border-radius:2px;transition:width .3s"></div>
                   </div>
                 </div>
               }
@@ -79,15 +78,18 @@ interface Criterion { key: keyof ScoreBreakdown; label: string; max: number; des
 
           <!-- Right: scoring form -->
           <div style="display:flex;flex-direction:column;gap:14px">
-            @for (c of criteria; track c.key) {
-              <div class="criterion-card">
+            @for (c of cards(); track c.key) {
+              <div class="criterion-card" [class.honoring-card]="c.key === 'taj'">
                 <div class="crit-head">
                   <div>
-                    <div class="crit-label">{{ c.label }}</div>
+                    <div class="crit-label">
+                      {{ c.label }}
+                      @if (c.key === 'taj') { <span class="honoring-badge">تكريم — خارج المجموع</span> }
+                    </div>
                     <div class="crit-desc">{{ c.desc }}</div>
                   </div>
                   <div class="crit-score" [style.color]="c.color">
-                    <span style="font-size:30px;font-weight:700">{{ scores[c.key] }}</span>
+                    <span style="font-size:30px;font-weight:700">{{ scores()[c.key] }}</span>
                     <span style="font-size:13px;color:var(--text-muted)">/{{ c.max }}</span>
                   </div>
                 </div>
@@ -101,13 +103,13 @@ interface Criterion { key: keyof ScoreBreakdown; label: string; max: number; des
 
                 <!-- Fine-tune -->
                 <div class="fine-row">
-                  <button class="tune" (click)="adj(c, -1)" [disabled]="scores[c.key] <= 0">
+                  <button class="tune" (click)="adj(c, -1)" [disabled]="(scores()[c.key]||0) <= 0">
                     <mat-icon>remove</mat-icon>
                   </button>
                   <div class="tune-track">
-                    <div class="tune-fill" [style.width.%]="scores[c.key]/c.max*100" [style.background]="c.color"></div>
+                    <div class="tune-fill" [style.width.%]="(scores()[c.key]||0)/c.max*100" [style.background]="c.color"></div>
                   </div>
-                  <button class="tune" (click)="adj(c, 1)" [disabled]="scores[c.key] >= c.max">
+                  <button class="tune" (click)="adj(c, 1)" [disabled]="(scores()[c.key]||0) >= c.max">
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
@@ -152,6 +154,8 @@ interface Criterion { key: keyof ScoreBreakdown; label: string; max: number; des
     .s-sheikh { font-size:12px;color:var(--text-muted);margin-top:2px; }
     .total-grade { font-size:15px;font-weight:700; }
     .criterion-card { background:var(--bg-card);border:1px solid var(--border-primary);border-radius:var(--r-md);padding:18px 20px;transition:border-color .2s;&:focus-within{border-color:rgba(212,168,67,.4);} }
+    .honoring-card { border-style:dashed;border-color:var(--blue,#4a90d9); }
+    .honoring-badge { font-size:10px;font-weight:600;color:var(--blue,#4a90d9);background:rgba(74,144,217,.12);padding:2px 7px;border-radius:10px;margin-right:6px; }
     .crit-head  { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:13px; }
     .crit-label { font-size:15px;font-weight:700;margin-bottom:3px; }
     .crit-desc  { font-size:12px;color:var(--text-muted); }
@@ -178,6 +182,7 @@ export class ScoringComponent implements OnInit {
   private scoreSvc       = inject(ScoreService);
   private studentSvc     = inject(StudentService);
   private competitionSvc = inject(CompetitionService);
+  private evalCfg        = inject(EvaluationConfigService);
   private auth           = inject(AuthService);
   private router         = inject(Router);
   private snack          = inject(MatSnackBar);
@@ -190,16 +195,32 @@ export class ScoringComponent implements OnInit {
   notes       = '';
   pcts        = [0, 25, 50, 60, 70, 80, 90, 100];
 
-  scores: ScoreBreakdown = { hifz: 35, tajweed: 25, ada: 17, waqf: 8 };
+  /** درجات كل بند بالمفتاح (q1..q10 أو hifz/tajweed/ada/waqf + 'taj' للتجويد المنفصل) */
+  scores = signal<Record<string, number>>({});
+  config = signal<EvaluationConfig | null>(null);
 
-  criteria: Criterion[] = [
-    { key:'hifz',    label:'الحفظ والاسترسال', max:40, desc:'مستوى الحفظ والطلاقة وعدم التوقف', color:'var(--gold)' },
-    { key:'tajweed', label:'أحكام التجويد',    max:30, desc:'تطبيق أحكام التجويد والمخارج',     color:'var(--blue)' },
-    { key:'ada',     label:'جمال الصوت والأداء',max:20,desc:'حسن الصوت وجودة الأداء',           color:'var(--green)' },
-    { key:'waqf',    label:'الوقف والابتداء',  max:10, desc:'صحة مواضع الوقف والابتداء',        color:'var(--purple)' },
-  ];
+  /** بنود المجموع الأساسي */
+  criteria = computed<EvaluationCriterion[]>(() => this.config()?.criteria ?? []);
 
-  total = computed(() => this.scores.hifz + this.scores.tajweed + this.scores.ada + this.scores.waqf);
+  /** بند التجويد المنفصل (للتكريم) عند تفعيله */
+  private tajCriterion = computed<EvaluationCriterion | null>(() => {
+    const t = this.config()?.tajweed;
+    return t?.enabled
+      ? { key: 'taj', label: 'التجويد', max: t.max, desc: 'يُقيَّم منفصلاً للتكريم، خارج المجموع', color: 'var(--blue)' }
+      : null;
+  });
+
+  /** كل البطاقات المعروضة (الأساسية + التجويد إن وُجد) */
+  cards = computed<EvaluationCriterion[]>(() => {
+    const taj = this.tajCriterion();
+    return taj ? [...this.criteria(), taj] : this.criteria();
+  });
+
+  /** المجموع = جمع البنود الأساسية فقط (التجويد المنفصل خارجه) */
+  total = computed(() => {
+    const sc = this.scores();
+    return this.criteria().reduce((a, c) => a + (sc[c.key] ?? 0), 0);
+  });
 
   totalColor(): string {
     const t = this.total();
@@ -218,35 +239,70 @@ export class ScoringComponent implements OnInit {
     if (!this.studentId) { this.loading.set(false); return; }
     this.studentSvc.getById(this.compId, this.studentId).subscribe(s => {
       this.student.set(s ?? null);
+      if (s) {
+        const cfg = this.evalCfg.buildConfig(s.category);
+        this.config.set(cfg);
+        this.initScores(cfg);
+      }
       this.loading.set(false);
     });
   }
 
-  isPct(c: Criterion, pct: number): boolean {
-    return this.scores[c.key] === Math.round(pct / 100 * c.max);
+  /** قيم ابتدائية معقولة (≈70% من السقف) لكل بند */
+  private initScores(cfg: EvaluationConfig): void {
+    const s: Record<string, number> = {};
+    for (const c of cfg.criteria) s[c.key] = Math.round(c.max * 0.7);
+    if (cfg.tajweed.enabled) s['taj'] = Math.round(cfg.tajweed.max * 0.7);
+    this.scores.set(s);
   }
 
-  setPct(c: Criterion, pct: number): void {
-    this.scores = { ...this.scores, [c.key]: Math.round(pct / 100 * c.max) };
+  isPct(c: EvaluationCriterion, pct: number): boolean {
+    return (this.scores()[c.key] ?? 0) === Math.round(pct / 100 * c.max);
   }
 
-  adj(c: Criterion, delta: number): void {
-    const newVal = Math.max(0, Math.min(c.max, this.scores[c.key] + delta));
-    this.scores = { ...this.scores, [c.key]: newVal };
+  setPct(c: EvaluationCriterion, pct: number): void {
+    this.scores.update(s => ({ ...s, [c.key]: Math.round(pct / 100 * c.max) }));
+  }
+
+  adj(c: EvaluationCriterion, delta: number): void {
+    this.scores.update(s => {
+      const newVal = Math.max(0, Math.min(c.max, (s[c.key] ?? 0) + delta));
+      return { ...s, [c.key]: newVal };
+    });
   }
 
   async submit(): Promise<void> {
     const s = this.student();
-    if (!s) return;
+    const cfg = this.config();
+    if (!s || !cfg) return;
     this.submitting.set(true); this.submitError.set('');
     try {
-      await this.scoreSvc.submit(
-        this.compId, s.id, s.fullName,
-        s.sessionId ?? '',
-        this.auth.currentUser()?.sheikhId ?? '',
-        this.scores, this.notes,
-        this.auth.currentUser()?.uid ?? '',
-      );
+      const sc = this.scores();
+      let breakdown: ScoreBreakdown | undefined;
+      let questions: number[] | undefined;
+      if (cfg.system === 'legacy') {
+        breakdown = {
+          hifz: sc['hifz'] ?? 0, tajweed: sc['tajweed'] ?? 0,
+          ada: sc['ada'] ?? 0, waqf: sc['waqf'] ?? 0,
+        };
+      } else {
+        questions = cfg.criteria.map(c => sc[c.key] ?? 0);
+      }
+      const tajweedScore = cfg.tajweed.enabled ? (sc['taj'] ?? 0) : undefined;
+
+      await this.scoreSvc.submit({
+        compId: this.compId,
+        studentId: s.id,
+        studentName: s.fullName,
+        sessionId: s.sessionId ?? '',
+        sheikhId: this.auth.currentUser()?.sheikhId ?? '',
+        notes: this.notes,
+        submittedBy: this.auth.currentUser()?.uid ?? '',
+        system: cfg.system,
+        breakdown,
+        questions,
+        tajweedScore,
+      });
       this.snack.open(`✅ تم حفظ تقييم ${s.fullName}: ${this.total()}/100`, '', { duration: 4000 });
       this.router.navigate(['/sheikh/queue']);
     } catch (e: any) {
