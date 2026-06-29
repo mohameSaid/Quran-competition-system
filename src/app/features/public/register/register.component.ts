@@ -12,13 +12,21 @@ import { MatCardModule } from "@angular/material/card";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { StudentService } from "../../../core/services/student.service";
 import { CompetitionService } from "../../../core/services/competition.service";
-import { JUZ_OPTIONS, CATEGORY_LABELS, CompetitionCategory } from "../../../core/models";
+import {
+  JUZ_OPTIONS,
+  CATEGORY_LABELS,
+  CompetitionCategory,
+  Student,
+  CATEGORY_RANK,
+} from "../../../core/models";
 import { buildStudentForm } from "../../../core/forms/student-form";
 import {
   categoryFromJuz,
   parseBirthDateFromNationalId,
   PREVIOUS_LEVEL_OPTIONS,
 } from "../../../core/validators/egypt.validators";
+import { normalizeArabic } from "@shared/functions";
+import { PreviousParticipationService } from "@core/services/previous-participation.service";
 
 @Component({
   selector: "app-register",
@@ -43,19 +51,29 @@ import {
         <p>املأ البيانات التالية للتسجيل في المسابقة</p>
       </div>
 
-      @if (compStatus() === 'loading') {
+      @if (compStatus() === "loading") {
         <mat-card class="state-card">
           <mat-spinner diameter="40" style="margin:0 auto 16px" />
           <h3>جاري التحميل...</h3>
           <p>يرجى الانتظار لحظة</p>
         </mat-card>
-      } @else if (compStatus() === 'error') {
+      } @else if (compStatus() === "error") {
         <mat-card class="state-card">
           <mat-icon>event_busy</mat-icon>
           <h3>التسجيل غير متاح حالياً</h3>
-          <p>لم تُفتح المسابقة بعد، أو تعذّر تحميل بياناتها. حاول مرة أخرى لاحقاً.</p>
-          <button mat-flat-button class="btn-gold" (click)="retryLoad()" [disabled]="retrying()">
-            @if (retrying()) { <mat-spinner diameter="18" /> }
+          <p>
+            لم تُفتح المسابقة بعد، أو تعذّر تحميل بياناتها. حاول مرة أخرى
+            لاحقاً.
+          </p>
+          <button
+            mat-flat-button
+            class="btn-gold"
+            (click)="retryLoad()"
+            [disabled]="retrying()"
+          >
+            @if (retrying()) {
+              <mat-spinner diameter="18" />
+            }
             إعادة المحاولة
           </button>
         </mat-card>
@@ -83,7 +101,6 @@ import {
         </mat-card>
       } @else {
         <form [formGroup]="form" (ngSubmit)="submit()" class="reg-form">
-
           <!-- 1. البيانات الشخصية -->
           <mat-card class="form-section">
             <mat-card-header>
@@ -93,23 +110,42 @@ import {
               <div class="fields">
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>اسم المتسابق (رباعي) *</mat-label>
-                  <input matInput formControlName="fullName" placeholder="الاسم كما في شهادة الميلاد / الرقم القومي" />
+                  <input
+                    matInput
+                    formControlName="fullName"
+                    placeholder="الاسم كما في شهادة الميلاد / الرقم القومي"
+                  />
                   <mat-hint>اكتب الاسم رباعياً على الأقل</mat-hint>
-                  @if (f.fullName.hasError('required') && f.fullName.touched) {
+                  @if (f.fullName.hasError("required") && f.fullName.touched) {
                     <mat-error>هذا الحقل مطلوب</mat-error>
-                  } @else if (f.fullName.hasError('minWords') && f.fullName.touched) {
+                  } @else if (
+                    f.fullName.hasError("minWords") && f.fullName.touched
+                  ) {
                     <mat-error>يجب إدخال الاسم رباعياً على الأقل</mat-error>
                   }
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>الرقم القومي *</mat-label>
-                  <input matInput formControlName="nationalId" type="tel" dir="ltr" maxlength="14"
-                         inputmode="numeric" placeholder="14 رقماً" />
-                  <mat-hint>يُستخرج تاريخ الميلاد تلقائياً من الرقم القومي</mat-hint>
-                  @if (f.nationalId.hasError('required') && f.nationalId.touched) {
+                  <input
+                    matInput
+                    formControlName="nationalId"
+                    type="tel"
+                    dir="ltr"
+                    maxlength="14"
+                    inputmode="numeric"
+                    placeholder="14 رقماً"
+                  />
+                  <mat-hint
+                    >يُستخرج تاريخ الميلاد تلقائياً من الرقم القومي</mat-hint
+                  >
+                  @if (
+                    f.nationalId.hasError("required") && f.nationalId.touched
+                  ) {
                     <mat-error>هذا الحقل مطلوب</mat-error>
-                  } @else if (f.nationalId.hasError('nationalId') && f.nationalId.touched) {
+                  } @else if (
+                    f.nationalId.hasError("nationalId") && f.nationalId.touched
+                  ) {
                     <mat-error>الرقم القومي غير صحيح</mat-error>
                   }
                 </mat-form-field>
@@ -117,7 +153,10 @@ import {
                 @if (derivedBirthDate()) {
                   <p class="derived-birth">
                     <mat-icon>cake</mat-icon>
-                    تاريخ الميلاد المستخرج: <strong>{{ derivedBirthDate() | date:'longDate':'':'ar-EG' }}</strong>
+                    تاريخ الميلاد المستخرج:
+                    <strong>{{
+                      derivedBirthDate() | date: "longDate" : "" : "ar-EG"
+                    }}</strong>
                   </p>
                 }
 
@@ -152,19 +191,40 @@ import {
                 <div class="form-grid-2">
                   <mat-form-field appearance="outline" class="full-width">
                     <mat-label>رقم هاتف ولي الأمر *</mat-label>
-                    <input matInput formControlName="parentPhone" type="tel" dir="ltr" maxlength="11" />
-                    @if (f.parentPhone.hasError('required') && f.parentPhone.touched) {
+                    <input
+                      matInput
+                      formControlName="parentPhone"
+                      type="tel"
+                      dir="ltr"
+                      maxlength="11"
+                    />
+                    @if (
+                      f.parentPhone.hasError("required") &&
+                      f.parentPhone.touched
+                    ) {
                       <mat-error>هذا الحقل مطلوب</mat-error>
-                    } @else if (f.parentPhone.hasError('egyptMobile') && f.parentPhone.touched) {
+                    } @else if (
+                      f.parentPhone.hasError("egyptMobile") &&
+                      f.parentPhone.touched
+                    ) {
                       <mat-error>رقم الهاتف غير صحيح</mat-error>
                     }
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="full-width">
                     <mat-label>رقم هاتف آخر</mat-label>
-                    <input matInput formControlName="alternatePhone" type="tel" dir="ltr" maxlength="11" />
+                    <input
+                      matInput
+                      formControlName="alternatePhone"
+                      type="tel"
+                      dir="ltr"
+                      maxlength="11"
+                    />
                     <mat-hint>اختياري</mat-hint>
-                    @if (f.alternatePhone.hasError('egyptMobile') && f.alternatePhone.touched) {
+                    @if (
+                      f.alternatePhone.hasError("egyptMobile") &&
+                      f.alternatePhone.touched
+                    ) {
                       <mat-error>رقم الهاتف غير صحيح</mat-error>
                     }
                   </mat-form-field>
@@ -182,8 +242,15 @@ import {
               <div class="fields">
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>اسم المحفّظ *</mat-label>
-                  <input matInput formControlName="memorizerName" placeholder="اكتب اسم المحفّظ">
-                  <mat-hint>حقل نصي حر — اكتب الاسم كما تريد، لا يلزم اختيار من قائمة</mat-hint>
+                  <input
+                    matInput
+                    formControlName="memorizerName"
+                    placeholder="اكتب اسم المحفّظ"
+                  />
+                  <mat-hint
+                    >حقل نصي حر — اكتب الاسم كما تريد، لا يلزم اختيار من
+                    قائمة</mat-hint
+                  >
                   @if (f.memorizerName.invalid && f.memorizerName.touched) {
                     <mat-error>هذا الحقل مطلوب</mat-error>
                   }
@@ -206,7 +273,9 @@ import {
                     <mat-label>المستوى المتقدَّم له *</mat-label>
                     <mat-select formControlName="category">
                       @for (k of categoryKeys; track k) {
-                        <mat-option [value]="k">{{ categoryLabels[k] }}</mat-option>
+                        <mat-option [value]="k">{{
+                          categoryLabels[k]
+                        }}</mat-option>
                       }
                     </mat-select>
                     @if (f.category.invalid && f.category.touched) {
@@ -215,10 +284,18 @@ import {
                   </mat-form-field>
                 </div>
 
-                @if (form.hasError('levelTooLow') && f.category.touched) {
-                  <p class="level-warn"><mat-icon>warning</mat-icon> المستوى المختار أقل من المسموح به وفقاً لعدد الأجزاء أو لمستواك السابق.</p>
-                } @else if (form.hasError('levelTooHigh') && f.category.touched) {
-                  <p class="level-warn"><mat-icon>warning</mat-icon> المستوى المختار أعلى من المسموح به وفقاً لعدد الأجزاء المحفوظة.</p>
+                @if (form.hasError("levelTooLow") && f.category.touched) {
+                  <p class="level-warn">
+                    <mat-icon>warning</mat-icon> المستوى المختار أقل من المسموح
+                    به وفقاً لعدد الأجزاء أو لمستواك السابق.
+                  </p>
+                } @else if (
+                  form.hasError("levelTooHigh") && f.category.touched
+                ) {
+                  <p class="level-warn">
+                    <mat-icon>warning</mat-icon> المستوى المختار أعلى من المسموح
+                    به وفقاً لعدد الأجزاء المحفوظة.
+                  </p>
                 }
 
                 <mat-form-field appearance="outline" class="full-width">
@@ -323,7 +400,11 @@ import {
         font-size: 13px;
         color: var(--accent, #2e7d32);
         margin: 0 0 8px;
-        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
       }
       .level-warn {
         display: flex;
@@ -332,7 +413,11 @@ import {
         font-size: 13px;
         color: var(--red, #e85555);
         margin: 0 0 8px;
-        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
       }
       .error-box {
         display: flex;
@@ -419,6 +504,7 @@ export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
   private studentSvc = inject(StudentService);
   private competitionSvc = inject(CompetitionService);
+  private previousParticipationService = inject(PreviousParticipationService);
 
   form = buildStudentForm(this.fb);
 
@@ -429,7 +515,7 @@ export class RegisterComponent implements OnInit {
   juzOptions = JUZ_OPTIONS;
   previousLevels = PREVIOUS_LEVEL_OPTIONS;
   categoryLabels = CATEGORY_LABELS;
-  categoryKeys: CompetitionCategory[] = ['five5', 'ten10', 'half15', 'full30'];
+  categoryKeys: CompetitionCategory[] = ["five5", "ten10", "half15", "full30"];
 
   loading = signal(false);
   success = signal(false);
@@ -453,13 +539,13 @@ export class RegisterComponent implements OnInit {
     // anonymous user landing directly on /register before anything else
     // warmed up the connection), retry once on our own so the visitor
     // isn't stuck on a permanent "loading" card.
-    if (this.compStatus() === 'loading') {
+    if (this.compStatus() === "loading") {
       this.competitionSvc.initActive().catch(() => void 0);
     }
 
     // استخراج تاريخ الميلاد تلقائياً من الرقم القومي عند تغييره
     this.f.nationalId.valueChanges.subscribe((id) => {
-      this.derivedBirthDate.set(parseBirthDateFromNationalId(id ?? ''));
+      this.derivedBirthDate.set(parseBirthDateFromNationalId(id ?? ""));
     });
 
     // اقتراح المستوى الافتراضي من عدد الأجزاء (قابل للتعديل من المستخدم)
@@ -484,7 +570,7 @@ export class RegisterComponent implements OnInit {
     // recovery path. Now the UI itself prevents reaching this point
     // unless compStatus() === 'ready', and this check is a defensive
     // second line in case state changes between render and submit.
-    if (this.compStatus() !== 'ready') {
+    if (this.compStatus() !== "ready") {
       this.error.set("تعذّر تحميل بيانات المسابقة، يرجى إعادة المحاولة");
       return;
     }
@@ -507,6 +593,27 @@ export class RegisterComponent implements OnInit {
       const memorizerName = v.memorizerName!.trim();
       // تاريخ الميلاد يُشتق من الرقم القومي (التحقق يضمن صحته)
       const birthDate = parseBirthDateFromNationalId(v.nationalId!)!;
+
+      // Check previous competitions
+      const previous = await this.previousParticipationService.lookup(
+        v.fullName!,
+        birthDate,
+      );
+
+      const selectedCategory =
+        (v.category as CompetitionCategory) || categoryFromJuz(v.juzCount!);
+
+      if (previous && previous.level) {
+        const selectedRank = CATEGORY_RANK[selectedCategory];
+
+        if (selectedRank < previous.rank) {
+          this.error.set(
+            `سبق للمتسابق الاشتراك في مستوى (${previous.level}) ولا يمكن التسجيل في مستوى أقل.`,
+          );
+          return;
+        }
+      }
+
       const id = await this.studentSvc.add(
         compId,
         {
@@ -521,7 +628,8 @@ export class RegisterComponent implements OnInit {
           memorizerName: memorizerName,
           juzCount: v.juzCount!,
           previousLevel: v.previousLevel!,
-          category: (v.category as CompetitionCategory) || categoryFromJuz(v.juzCount!),
+          category:
+            (v.category as CompetitionCategory) || categoryFromJuz(v.juzCount!),
           registeredBy: "public",
         },
         "public",
@@ -529,7 +637,8 @@ export class RegisterComponent implements OnInit {
       this.regNumber.set("QC-" + id.substring(0, 8).toUpperCase());
       this.success.set(true);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "حدث خطأ، يرجى المحاولة لاحقاً";
+      const msg =
+        e instanceof Error ? e.message : "حدث خطأ، يرجى المحاولة لاحقاً";
       this.error.set(msg);
     } finally {
       this.loading.set(false);
