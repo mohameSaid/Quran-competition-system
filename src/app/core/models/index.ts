@@ -222,3 +222,11 @@ export const CATEGORY_RANK: Record<CompetitionCategory, number> = {
 export const CATEGORY_MIN_JUZ: Record<CompetitionCategory, number> = {
   five5: 5, ten10: 10, half15: 15, full30: 30,
 };
+
+
+export enum StudentStatusEnum {
+  Pending = 'pending',
+  Scheduled = 'scheduled',
+  Evaluated = 'evaluated',
+  Published = 'published',
+}

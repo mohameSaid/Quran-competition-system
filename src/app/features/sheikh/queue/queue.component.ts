@@ -13,7 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
-import { Student, ExamSession } from '../../../core/models';
+import { Student, ExamSession, StudentStatusEnum } from '../../../core/models';
 
 @Component({
   selector: 'app-queue',
@@ -47,6 +47,21 @@ import { Student, ExamSession } from '../../../core/models';
           <mat-icon>search</mat-icon> فتح التقييم
         </button>
       </div>
+
+        <!-- ── الحارس: متسابق مُقيَّم بالفعل — لا يُعاد تقييمه ── -->
+      @if (evaluatedFound  ) {
+        <div class="qc-card already-scored-card">
+          <mat-icon style="font-size:48px;color:var(--green)">verified</mat-icon>
+          <div class="s-name" style="margin-top:10px">{{evaluatedFound!.fullName }}</div>
+          <p style="color:var(--text-muted);margin-top:6px">
+            تم تقييم هذا المتسابق مسبقاً ولا يمكن إعادة رصد الدرجة له.
+          </p>
+        
+          <button mat-stroked-button style="margin-top:16px" (click)="evaluatedFound=undefined">
+            <mat-icon>person_search</mat-icon> البحث عن متسابق آخر
+          </button>
+        </div>
+      }
 
       <div class="queue-layout">
         <!-- Queue list -->
@@ -165,7 +180,7 @@ export class QueueComponent implements OnInit {
   searchNid    = '';
   searching    = signal(false);
   today        = new Date().toLocaleDateString('ar-SA', { weekday:'long', day:'numeric', month:'long' });
-
+  evaluatedFound!:Student| undefined
   waiting() { return this.students().filter(s => s.status !== 'evaluated' && s.status !== 'published'); }
   done()    { return this.students().filter(s => s.status === 'evaluated' || s.status === 'published'); }
   calledStudent() { return this.students().find(s => s.id === this.calledId()) ?? null; }
@@ -211,6 +226,13 @@ export class QueueComponent implements OnInit {
       next: (list) => {
         this.searching.set(false);
         const found = list[0];
+
+        if (found.status== StudentStatusEnum.Evaluated) {
+          this.evaluatedFound=found
+           this.snack.open('تم تقييم هذا المتسابق بالفعل', '', { duration: 5000 });
+          return;
+        }
+
         if (!found) {
           this.snack.open('لم يُعثر على متسابق بهذا الرقم القومي', '', { duration: 3500 });
           return;

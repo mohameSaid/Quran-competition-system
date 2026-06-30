@@ -1,6 +1,11 @@
-import { Component, inject, signal, OnInit } from "@angular/core";
+import { Component, inject, signal, OnInit, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
@@ -23,9 +28,11 @@ import { formatEgyptDate } from "../../../core/validators/egypt.validators";
     MatButtonModule,
     MatIconModule,
     MatCardModule,
+    FormsModule,
   ],
   template: `
     <div class="page-wrap">
+      {{ filteredRecords.length }}
       <div class="section-header">
         <div class="section-title">
           بيانات المسابقات السابقة ({{ records().length }})
@@ -120,6 +127,22 @@ import { formatEgyptDate } from "../../../core/validators/egypt.validators";
           لا توجد بيانات سابقة. أضف سجلاً أو استورد ملف Excel.
         </p>
       } @else {
+        <mat-form-field
+          appearance="outline"
+          style="width:100%; margin-bottom:16px"
+        >
+          <mat-label>بحث بالاسم</mat-label>
+
+          <input
+            matInput
+            [(ngModel)]="search"
+            name="search"
+            placeholder="اكتب اسم المتسابق..."
+          />
+
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
         <div class="qc-table-wrap">
           <table class="qc-table">
             <thead>
@@ -134,7 +157,7 @@ import { formatEgyptDate } from "../../../core/validators/egypt.validators";
               </tr>
             </thead>
             <tbody>
-              @for (r of records(); track r.id; let i = $index) {
+              @for (r of filteredRecords; track r.id; let i = $index) {
                 <tr>
                   <td>{{ i + 1 }}</td>
                   <td>
@@ -263,59 +286,90 @@ export class PreviousDataComponent implements OnInit {
     this.snack.open("تم الحذف", "", { duration: 2000 });
   }
 
-async onFile(ev: Event): Promise<void> {
-  const input = ev.target as HTMLInputElement;
-  const file = input.files?.[0];
+  async onFile(ev: Event): Promise<void> {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
 
-  if (!file) {
-    return;
+    if (!file) {
+      return;
+    }
+
+    this.importing.set(true);
+
+    try {
+      const XLSX = await import("xlsx");
+
+      const buffer = await file.arrayBuffer();
+
+      const workbook = XLSX.read(buffer, {
+        type: "array",
+        cellDates: true,
+      });
+
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+      const rows = XLSX.utils
+        .sheet_to_json<Record<string, unknown>>(worksheet, {
+          raw: false,
+          defval: "",
+        })
+        .map(
+          (row) =>
+            Object.fromEntries(
+              Object.entries(row).map(([key, value]) => [
+                key.trim().replace(/\s+/g, " "),
+                value,
+              ]),
+            ) as Record<string, unknown>,
+        );
+
+      console.log("Headers:", Object.keys(rows[0] ?? {}));
+      console.log("First Row:", rows[0]);
+
+      const imported = await this.prevSvc.bulkImport(rows);
+
+      this.snack.open(`تم استيراد ${imported} سجلاً`, "", {
+        duration: 3500,
+      });
+    } catch (error) {
+      console.error("Import Error:", error);
+
+      this.snack.open("تعذر استيراد الملف", "", {
+        duration: 4000,
+      });
+    } finally {
+      this.importing.set(false);
+      input.value = "";
+    }
+  }
+  search = "";
+
+  get filteredRecords(): PreviousParticipation[] {
+    const query = this.normalize(this.search);
+
+    if (!query) {
+      return this.records();
+    }
+
+    const terms = query.split(/\s+/).filter(Boolean);
+
+    return this.records().filter((record) => {
+      const name = this.normalize(record.name);
+
+      return terms.every((term) => name.includes(term));
+    });
   }
 
-  this.importing.set(true);
-
-  try {
-    const XLSX = await import('xlsx');
-
-    const buffer = await file.arrayBuffer();
-
-    const workbook = XLSX.read(buffer, {
-      type: 'array',
-      cellDates: true,
-    });
-
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-
-    const rows = XLSX.utils
-      .sheet_to_json<Record<string, unknown>>(worksheet, {
-        raw: false,
-        defval: '',
-      })
-      .map((row) =>
-        Object.fromEntries(
-          Object.entries(row).map(([key, value]) => [
-            key.trim().replace(/\s+/g, ' '),
-            value,
-          ]),
-        ) as Record<string, unknown>,
-      );
-
-    console.log('Headers:', Object.keys(rows[0] ?? {}));
-    console.log('First Row:', rows[0]);
-
-    const imported = await this.prevSvc.bulkImport(rows);
-
-    this.snack.open(`تم استيراد ${imported} سجلاً`, '', {
-      duration: 3500,
-    });
-  } catch (error) {
-    console.error('Import Error:', error);
-
-    this.snack.open('تعذر استيراد الملف', '', {
-      duration: 4000,
-    });
-  } finally {
-    this.importing.set(false);
-    input.value = '';
+  private normalize(text: string | null | undefined): string {
+    return (text ?? "")
+      .toLowerCase()
+      .trim()
+      .replace(/[أإآ]/g, "ا")
+      .replace(/ة/g, "ه")
+      .replace(/ى/g, "ي")
+      .replace(/ؤ/g, "و")
+      .replace(/ئ/g, "ي")
+      .replace(/[ًٌٍَُِّْ]/g, "")
+      .replace(/\s+/g, " ");
   }
-}
 }
