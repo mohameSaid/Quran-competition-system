@@ -1,16 +1,240 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>نظام مسابقة القرآن الكريم</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-</head>
-<body class="mat-typography">
-  <app-root></app-root>
-</body>
+  <head>
+    <meta charset="utf-8" />
+
+    <title>مسابقة القرآن الكريم السنوية | قرية كفر أبو الحسن</title>
+
+    <base href="/" />
+
+    <!-- Responsive -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- SEO -->
+    <meta
+      name="description"
+      content="الموقع الرسمي لمسابقة القرآن الكريم السنوية بقرية كفر أبو الحسن. سجل الآن وشارك في حفظ وتلاوة القرآن الكريم."
+    />
+
+    <meta
+      name="keywords"
+      content="القرآن الكريم, مسابقة القرآن, حفظ القرآن, تجويد, كفر أبو الحسن, قويسنا, المنوفية, Quran Competition"
+    />
+
+    <meta name="author" content="Kafr Abu Al Hasan" />
+
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    <meta name="language" content="Arabic" />
+
+    <meta name="application-name" content="مسابقة القرآن الكريم" />
+
+    <meta name="apple-mobile-web-app-title" content="مسابقة القرآن" />
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#0F766E" />
+
+    <meta name="msapplication-TileColor" content="#0F766E" />
+
+    <meta name="color-scheme" content="light" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+
+    <meta property="og:locale" content="ar_EG" />
+
+    <meta
+      property="og:title"
+      content="مسابقة القرآن الكريم السنوية | قرية كفر أبو الحسن"
+    />
+
+    <meta
+      property="og:description"
+      content="سجل الآن في مسابقة القرآن الكريم السنوية بقرية كفر أبو الحسن وشارك في حفظ وتلاوة كتاب الله."
+    />
+
+    <meta property="og:url" content="https://YOUR_DOMAIN.com" />
+
+    <meta property="og:site_name" content="مسابقة القرآن الكريم" />
+
+    <meta
+      property="og:image"
+      content="https://YOUR_DOMAIN.com/assets/images/social-cover.jpg"
+    />
+
+    <meta property="og:image:width" content="1200" />
+
+    <meta property="og:image:height" content="630" />
+
+    <meta property="og:image:alt" content="مسابقة القرآن الكريم" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="twitter:title" content="مسابقة القرآن الكريم السنوية" />
+
+    <meta
+      name="twitter:description"
+      content="الموقع الرسمي لمسابقة القرآن الكريم السنوية."
+    />
+
+    <meta
+      name="twitter:image"
+      content="https://YOUR_DOMAIN.com/assets/images/social-cover.jpg"
+    />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://YOUR_DOMAIN.com" />
+
+    <!-- Icons -->
+    <link rel="icon" href="favicon.ico" />
+
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png" />
+
+    <link rel="manifest" href="manifest.webmanifest" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "مسابقة القرآن الكريم",
+        "alternateName": "Quran Competition",
+        "url": "https://YOUR_DOMAIN.com",
+        "description": "الموقع الرسمي لمسابقة القرآن الكريم السنوية بقرية كفر أبو الحسن",
+        "inLanguage": "ar",
+        "publisher": {
+          "@type": "Organization",
+          "name": "قرية كفر أبو الحسن"
+        }
+      }
+    </script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0b1f1a;
+        font-family: "Cairo", sans-serif;
+      }
+
+      .app-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: radial-gradient(circle at top, #14532d, #052e16);
+        z-index: 999999;
+        transition: 0.4s;
+      }
+
+      .loader-pattern {
+        position: absolute;
+        inset: 0;
+        opacity: 0.05;
+        background-image: radial-gradient(#fff 1px, transparent 1px);
+        background-size: 30px 30px;
+      }
+
+      .loader-icon {
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        animation: float 3s ease-in-out infinite;
+      }
+
+      .loader-title {
+        margin-top: 28px;
+        font-family: "Amiri", serif;
+        color: #fff;
+        font-size: 34px;
+        font-weight: bold;
+      }
+
+      .loader-sub {
+        margin-top: 10px;
+        color: #d1fae5;
+        font-size: 15px;
+      }
+
+      .loader-spinner {
+        margin-top: 35px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.15);
+        border-top-color: #ffd700;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      app-root:not(:empty) + .app-loader {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+
+  <body class="mat-typography">
+    <app-root></app-root>
+
+    <div class="app-loader">
+      <div class="loader-pattern"></div>
+
+      <div class="loader-icon">📖</div>
+
+      <div class="loader-title">مسابقة القرآن الكريم</div>
+
+      <div class="loader-sub">﴿ وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا ﴾</div>
+
+      <div class="loader-spinner"></div>
+    </div>
+  </body>
 </html>
