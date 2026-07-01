@@ -164,3 +164,36 @@ src/app/
 - [x] تصدير Excel (lazy loaded)
 - [x] Firestore Security Rules كاملة
 - [x] فصل كامل: Core / Shared / Features
+
+---
+
+## 🏛️ منصّة القرآن (Platform Layer) — المرحلة الأولى
+
+تطوّر النظام من "تطبيق مسابقة" إلى **منصّة قرآنية** قابلة للتوسّع، حيث المسابقة مجرد
+نوع واحد من البرامج. راجع وثيقة المعمارية الكاملة (القرارات، المفاضلات، نموذج البيانات):
+
+📄 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+**ما تمّت إضافته في هذه المرحلة:**
+
+- **Person First** — كيان `Person` موحّد لكل الأشخاص، والأدوار Subcollection لكل شخص.
+- **Registration First** — معالج تسجيل موحّد `‎/public/join` (خطوات: الحساب → البيانات → الأدوار → مراجعة).
+- **Configuration over Code** — البيانات المرجعية (`‎/admin/master-data`) تُدار من لوحة التحكم لكل النطاقات بواجهة واحدة.
+- **RBAC مرن** — صلاحيات `resource:action`؛ الحماية بالصلاحية لا بالدور (`requirePermission`, `*appHasPermission`).
+- **سجل الأشخاص** — `‎/admin/persons` مع ترقيم صفحات بالمؤشّر (cursor) وبحث بالبادئة.
+- **قواعد أمان + فهارس + قواعد Storage** لكل المجموعات الجديدة.
+- **بذور بيانات** — `seed/*.json` + سكربت استيراد.
+
+**استيراد البيانات المرجعية:**
+
+```bash
+npm i -D firebase-admin
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccount.json
+npm run seed          # أو: npm run seed:dry للمعاينة دون كتابة
+```
+
+**نشر قواعد Storage:**
+
+```bash
+firebase deploy --only storage
+```

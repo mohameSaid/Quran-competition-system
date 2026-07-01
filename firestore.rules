@@ -19,6 +19,15 @@ service cloud.firestore {
     function isSheikh() { return role() == 'sheikh'; }
     function mySheikhId() { return userDoc().sheikhId; }
 
+    // ── Platform helpers ─────────────────────────────────────
+    // Immutable audit fields must never change after creation.
+    function keepsCreator() {
+      return request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+    // A self-registrant owns the person doc whose id equals their uid.
+    function ownsPerson(pid) { return isAuth() && uid() == pid; }
+
     // ── Users ────────────────────────────────────────────────
     match /users/{userId} {
       allow read:   if isAuth() && (uid() == userId || isAdmin());
@@ -57,6 +66,85 @@ service cloud.firestore {
     match /siteContent/{docId} {
       allow read:   if true;
       allow write:  if isAdmin();
+    }
+
+    // ═════════════════════════════════════════════════════════
+    // PLATFORM COLLECTIONS (Phase 1)
+    // ═════════════════════════════════════════════════════════
+
+    // ── Persons (the unified record — "Person First") ────────
+    match /persons/{personId} {
+      // Owner or staff may read; person docs may hold contact data.
+      allow read: if ownsPerson(personId) || isAdmin() || isSheikh();
+      // Self-registration (uid == personId) or admin-created.
+      allow create: if isAdmin()
+        || (ownsPerson(personId)
+            && request.resource.data.accountUid == uid()
+            && request.resource.data.createdBy == uid());
+      // Owner may edit their own profile (not audit fields); admin any.
+      allow update: if isAdmin()
+        || (ownsPerson(personId) && keepsCreator());
+      allow delete: if isAdmin();
+
+      // Role assignments per person: persons/{id}/roles/{roleType}
+      match /roles/{roleType} {
+        allow read: if ownsPerson(personId) || isAdmin();
+        // Self may request a role, but only in 'pending' state.
+        allow create: if isAdmin()
+          || (ownsPerson(personId) && request.resource.data.status == 'pending');
+        // Approving / suspending / revoking is an admin action.
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ── Master Data (reference lists — read-only to everyone) ─
+    match /masterData/{domain}/items/{itemId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Role policies (runtime RBAC overrides) ───────────────
+    match /rolePolicies/{roleId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ── Programs (competition, circle, course, event, camp) ──
+    match /programs/{programId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Enrollments (Person ↔ Program) ───────────────────────
+    match /enrollments/{enrollmentId} {
+      allow read: if isAdmin() || isSheikh()
+        || (isAuth() && resource.data.personId == uid());
+      // A person may enroll themselves in 'pending' state.
+      allow create: if isAdmin()
+        || (isAuth()
+            && request.resource.data.personId == uid()
+            && request.resource.data.status == 'pending');
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Notifications (per recipient) ────────────────────────
+    match /notifications/{notificationId} {
+      allow read: if isAdmin()
+        || (isAuth() && resource.data.recipientPersonId == uid());
+      allow create: if isAdmin();
+      // Recipient may only flip their own notification to 'read'.
+      allow update: if isAdmin()
+        || (isAuth()
+            && resource.data.recipientPersonId == uid()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
+      allow delete: if isAdmin();
+    }
+
+    // ── Audit logs (append-only, admin-readable) ─────────────
+    match /auditLogs/{logId} {
+      allow read:   if isAdmin();
+      allow create: if isAuth();
+      allow update, delete: if false;
     }
 
     // ── Competitions ─────────────────────────────────────────
