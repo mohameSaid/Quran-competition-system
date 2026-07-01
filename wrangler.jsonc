@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "quran-competition-system",
+  "compatibility_date": "2026-07-01",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "dist/quran-competition/browser"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

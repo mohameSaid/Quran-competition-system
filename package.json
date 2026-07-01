@@ -6,7 +6,8 @@
     "start": "ng serve --open",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
-    "deploy": "ng build --configuration production && firebase deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "preview": "npm run build && wrangler dev"
   },
   "private": true,
   "dependencies": {
@@ -31,7 +32,8 @@
     "@angular-devkit/build-angular": "^19.0.0",
     "@angular/cli": "^19.0.0",
     "@angular/compiler-cli": "^19.0.0",
+    "firebase-tools": "^13.0.0",
     "typescript": "~5.6.0",
-    "firebase-tools": "^13.0.0"
+    "wrangler": "^4.106.0"
   }
 }
