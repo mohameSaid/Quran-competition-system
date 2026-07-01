@@ -1,6 +1,7 @@
 import { Routes } from "@angular/router";
 import { adminGuard } from "./core/guards/admin.guard";
 import { sheikhGuard } from "./core/guards/sheikh.guard";
+import { requirePermission } from "./core/guards/permission.guard";
 
 export const routes: Routes = [
   // Default route
@@ -27,6 +28,13 @@ export const routes: Routes = [
           import("./features/public/register/register.component").then(
             (m) => m.RegisterComponent,
           ),
+      },
+      {
+        path: "join",
+        loadComponent: () =>
+          import(
+            "./features/public/registration-wizard/registration-wizard.component"
+          ).then((m) => m.RegistrationWizardComponent),
       },
     ],
   },
@@ -55,6 +63,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import("./features/admin/dashboard/dashboard.component").then(
             (m) => m.DashboardComponent,
+          ),
+      },
+      {
+        path: "persons",
+        canActivate: [requirePermission("person:read")],
+        loadComponent: () =>
+          import("./features/admin/persons/persons.component").then(
+            (m) => m.PersonsComponent,
+          ),
+      },
+      {
+        path: "master-data",
+        canActivate: [requirePermission("masterData:read")],
+        loadComponent: () =>
+          import("./features/admin/master-data/master-data.component").then(
+            (m) => m.MasterDataComponent,
           ),
       },
       {

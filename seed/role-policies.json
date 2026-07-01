@@ -1,0 +1,11 @@
+{
+  "_comment": "Optional runtime RBAC overrides written to rolePolicies/{role}. When absent, the app falls back to DEFAULT_ROLE_POLICY in code. Edit here to re-map capabilities without a deploy (Configuration over Code). Use '*:*' only for superAdmin.",
+  "superAdmin": { "permissions": ["*:*"] },
+  "viewer": {
+    "permissions": [
+      "person:read", "program:read", "competition:read", "circle:read",
+      "mosque:read", "enrollment:read", "exam:read", "evaluation:read",
+      "certificate:read", "award:read", "report:read", "masterData:read"
+    ]
+  }
+}

@@ -56,6 +56,64 @@
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "name",     "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",    "order": "ASCENDING"  },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "order",    "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "parentId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "order",    "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "enrollments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "personId",  "order": "ASCENDING"  },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "enrollments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "programId", "order": "ASCENDING" },
+        { "fieldPath": "status",    "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "enrollments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "programId", "order": "ASCENDING"  },
+        { "fieldPath": "asRole",    "order": "ASCENDING"  },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "recipientPersonId", "order": "ASCENDING"  },
+        { "fieldPath": "createdAt",         "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

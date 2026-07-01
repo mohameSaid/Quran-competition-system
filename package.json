@@ -6,6 +6,8 @@
     "start": "ng serve --open",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
+    "seed": "node scripts/seed/import.mjs",
+    "seed:dry": "node scripts/seed/import.mjs --dry-run",
     "deploy": "ng build --configuration production && firebase deploy"
   },
   "private": true,

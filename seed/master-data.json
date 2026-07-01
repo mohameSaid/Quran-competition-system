@@ -1,0 +1,84 @@
+{
+  "_comment": "Firestore seed for reference data (Configuration over Code). Derived from the PRD Master-Data list and the legacy Kafr Abu Al-Hasan competition context. Imported into masterData/{domain}/items/* by scripts/seed/import.mjs.",
+  "provinces": [
+    { "code": "MNF", "name": { "ar": "المنوفية", "en": "Menoufia" }, "order": 1, "isActive": true },
+    { "code": "CAI", "name": { "ar": "القاهرة", "en": "Cairo" }, "order": 2, "isActive": true },
+    { "code": "GIZ", "name": { "ar": "الجيزة", "en": "Giza" }, "order": 3, "isActive": true }
+  ],
+  "cities": [
+    { "code": "QWS", "name": { "ar": "قويسنا", "en": "Quwaysna" }, "order": 1, "isActive": true, "parentCode": "MNF" },
+    { "code": "SHB", "name": { "ar": "شبين الكوم", "en": "Shibin El Kom" }, "order": 2, "isActive": true, "parentCode": "MNF" }
+  ],
+  "villages": [
+    { "code": "KAH", "name": { "ar": "كفر أبو الحسن", "en": "Kafr Abu Al-Hasan" }, "order": 1, "isActive": true, "parentCode": "QWS" }
+  ],
+  "nationalities": [
+    { "code": "EG", "name": { "ar": "مصري", "en": "Egyptian" }, "order": 1, "isActive": true },
+    { "code": "SA", "name": { "ar": "سعودي", "en": "Saudi" }, "order": 2, "isActive": true },
+    { "code": "OTHER", "name": { "ar": "أخرى", "en": "Other" }, "order": 99, "isActive": true }
+  ],
+  "educationStages": [
+    { "code": "PRIMARY", "name": { "ar": "ابتدائي", "en": "Primary" }, "order": 1, "isActive": true },
+    { "code": "PREP", "name": { "ar": "إعدادي", "en": "Preparatory" }, "order": 2, "isActive": true },
+    { "code": "SECONDARY", "name": { "ar": "ثانوي", "en": "Secondary" }, "order": 3, "isActive": true },
+    { "code": "UNIVERSITY", "name": { "ar": "جامعي", "en": "University" }, "order": 4, "isActive": true },
+    { "code": "GRADUATE", "name": { "ar": "خرّيج", "en": "Graduate" }, "order": 5, "isActive": true }
+  ],
+  "memorizationLevels": [
+    { "code": "L5", "name": { "ar": "5 أجزاء", "en": "5 Juz" }, "order": 1, "isActive": true },
+    { "code": "L10", "name": { "ar": "10 أجزاء", "en": "10 Juz" }, "order": 2, "isActive": true },
+    { "code": "L15", "name": { "ar": "15 جزءاً", "en": "15 Juz" }, "order": 3, "isActive": true },
+    { "code": "L30", "name": { "ar": "الحفظ الكامل (30 جزء)", "en": "Full 30 Juz" }, "order": 4, "isActive": true }
+  ],
+  "programTypes": [
+    { "code": "competition", "name": { "ar": "مسابقة", "en": "Competition" }, "order": 1, "isActive": true },
+    { "code": "memorizationCircle", "name": { "ar": "حلقة تحفيظ", "en": "Memorization Circle" }, "order": 2, "isActive": true },
+    { "code": "course", "name": { "ar": "دورة", "en": "Course" }, "order": 3, "isActive": true },
+    { "code": "event", "name": { "ar": "فعالية", "en": "Event" }, "order": 4, "isActive": true },
+    { "code": "camp", "name": { "ar": "معسكر", "en": "Camp" }, "order": 5, "isActive": true }
+  ],
+  "awardTypes": [
+    { "code": "certificate", "name": { "ar": "شهادة", "en": "Certificate" }, "order": 1, "isActive": true },
+    { "code": "medal", "name": { "ar": "ميدالية", "en": "Medal" }, "order": 2, "isActive": true },
+    { "code": "cash", "name": { "ar": "مكافأة مالية", "en": "Cash Reward" }, "order": 3, "isActive": true },
+    { "code": "gift", "name": { "ar": "هدية", "en": "Gift" }, "order": 4, "isActive": true }
+  ],
+  "examTypes": [
+    { "code": "weekly", "name": { "ar": "أسبوعي", "en": "Weekly" }, "order": 1, "isActive": true },
+    { "code": "monthly", "name": { "ar": "شهري", "en": "Monthly" }, "order": 2, "isActive": true },
+    { "code": "semiannual", "name": { "ar": "نصف سنوي", "en": "Semi-annual" }, "order": 3, "isActive": true },
+    { "code": "final", "name": { "ar": "نهائي", "en": "Final" }, "order": 4, "isActive": true },
+    { "code": "competition", "name": { "ar": "اختبار مسابقة", "en": "Competition Exam" }, "order": 5, "isActive": true },
+    { "code": "placement", "name": { "ar": "تحديد مستوى", "en": "Placement Test" }, "order": 6, "isActive": true }
+  ],
+  "categories": [
+    { "code": "full30", "name": { "ar": "الحفظ الكامل (30 جزء)", "en": "Full 30 Juz" }, "order": 1, "isActive": true },
+    { "code": "half15", "name": { "ar": "15 جزءاً", "en": "15 Juz" }, "order": 2, "isActive": true },
+    { "code": "ten10", "name": { "ar": "10 أجزاء", "en": "10 Juz" }, "order": 3, "isActive": true },
+    { "code": "five5", "name": { "ar": "5 أجزاء", "en": "5 Juz" }, "order": 4, "isActive": true }
+  ],
+  "exclusionReasons": [
+    { "code": "absence", "name": { "ar": "غياب متكرر", "en": "Repeated Absence" }, "order": 1, "isActive": true },
+    { "code": "misconduct", "name": { "ar": "سوء سلوك", "en": "Misconduct" }, "order": 2, "isActive": true },
+    { "code": "ineligible", "name": { "ar": "عدم استيفاء الشروط", "en": "Not Eligible" }, "order": 3, "isActive": true },
+    { "code": "withdrawal", "name": { "ar": "انسحاب", "en": "Withdrawal" }, "order": 4, "isActive": true }
+  ],
+  "registrationStatuses": [
+    { "code": "pending", "name": { "ar": "قيد المراجعة", "en": "Pending" }, "order": 1, "isActive": true },
+    { "code": "approved", "name": { "ar": "مقبول", "en": "Approved" }, "order": 2, "isActive": true },
+    { "code": "rejected", "name": { "ar": "مرفوض", "en": "Rejected" }, "order": 3, "isActive": true }
+  ],
+  "programStatuses": [
+    { "code": "draft", "name": { "ar": "مسودّة", "en": "Draft" }, "order": 1, "isActive": true },
+    { "code": "registrationOpen", "name": { "ar": "التسجيل مفتوح", "en": "Registration Open" }, "order": 2, "isActive": true },
+    { "code": "inProgress", "name": { "ar": "جارٍ", "en": "In Progress" }, "order": 3, "isActive": true },
+    { "code": "completed", "name": { "ar": "منتهٍ", "en": "Completed" }, "order": 4, "isActive": true },
+    { "code": "archived", "name": { "ar": "مؤرشف", "en": "Archived" }, "order": 5, "isActive": true }
+  ],
+  "studentStatuses": [
+    { "code": "active", "name": { "ar": "نشط", "en": "Active" }, "order": 1, "isActive": true },
+    { "code": "graduated", "name": { "ar": "متخرّج", "en": "Graduated" }, "order": 2, "isActive": true },
+    { "code": "suspended", "name": { "ar": "موقوف", "en": "Suspended" }, "order": 3, "isActive": true },
+    { "code": "withdrawn", "name": { "ar": "منسحب", "en": "Withdrawn" }, "order": 4, "isActive": true }
+  ]
+}

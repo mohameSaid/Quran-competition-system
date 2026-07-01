@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Firebase Storage security rules.
+// Mirrors the Firestore authorization model: public-safe assets are
+// world-readable; everything tied to a person is owner-or-admin only.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth()   { return request.auth != null; }
+    function uid()      { return request.auth.uid; }
+    // Guard uploads: images only, capped at 5 MB.
+    function isImageUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Public site assets (home page media, social cover, etc.).
+    match /public/{allPaths=**} {
+      allow read:  if true;
+      allow write: if isAuth();
+    }
+
+    // Per-person files (avatars, documents). Owner-scoped by uid.
+    match /persons/{personId}/{allPaths=**} {
+      allow read:  if isAuth() && (uid() == personId);
+      allow write: if isAuth() && uid() == personId && isImageUnder5MB();
+    }
+
+    // Generated certificates — readable by anyone with the link
+    // (QR-code verification), writable only by authenticated backends.
+    match /certificates/{allPaths=**} {
+      allow read:  if true;
+      allow write: if isAuth();
+    }
+
+    // Deny everything else by default.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

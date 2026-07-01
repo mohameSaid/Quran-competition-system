@@ -8,6 +8,8 @@ import { AuthService } from '../../../core/services/auth.service';
 
 const NAV = [
   { icon:'dashboard',           label:'لوحة التحكم',  route:'/admin/dashboard' },
+  { icon:'badge',               label:'الأشخاص',       route:'/admin/persons'   },
+  { icon:'tune',                label:'البيانات المرجعية', route:'/admin/master-data' },
   { icon:'group',               label:'المتسابقون',    route:'/admin/students'  },
   { icon:'record_voice_over',   label:'المحكّمون',     route:'/admin/sheikhs'   },
   { icon:'event_note',          label:'الجلسات',        route:'/admin/sessions'  },
